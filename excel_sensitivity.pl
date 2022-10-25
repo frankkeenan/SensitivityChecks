@@ -49,8 +49,9 @@ sub main
     $worksheet->set_column( 'A:A', 20 );   # Columns F-H width set to 30
     $worksheet->set_column( 'B:B', 50 );   # Columns F-H width set to 30
     $worksheet->set_column( 'C:C', 20 );   # Columns F-H width set to 30
-    $worksheet->set_column( 'D:H', 10, $centered );   # Columns F-H width set to 30
+    $worksheet->set_column( 'D:D', 10, $centered );   # Columns F-H width set to 30
     $worksheet->set_column( 'E:E', 20, undef, 1 );   # Columns E width set to 20 and hidden
+    $worksheet->set_column( 'F:H', 10, $centered );   # Columns F-H width set to 30
     $worksheet->set_column( 'I:I', 50 );   # Columns F-H width set to 30
     $worksheet->set_column( 'J:J', 50 );   # Columns F-H width set to 30
     $row = 0;
