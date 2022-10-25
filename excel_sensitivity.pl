@@ -9,11 +9,10 @@ require "./utils.pl";
 require "./restructure.pl";
 #require "/NEWdata/dicts/generic/progs/xsl_lib_fk.pl";
 $LOG = 0;
-$LOAD = 0;
 $UTF8 = 1;
 $, = ' ';               # set output field separator
 $\ = "\n";              # set output record separator
-#undef $/; # read in the whole file at once
+
 &main;
 
 sub main
@@ -29,10 +28,7 @@ sub main
 	$opt_r = "fk_test.xlsx";
     }
     &open_debug_files;
-    if ($opt_D)
-    {
-	binmode DB::OUT,":utf8";
-    }
+    if ($opt_D) {binmode DB::OUT,":utf8";}
 
     my $workbook  = Excel::Writer::XLSX->new( $opt_r );
     my $worksheet = $workbook->add_worksheet();
@@ -40,7 +36,8 @@ sub main
     # Create some format objects
     my $unlocked = $workbook->add_format( locked => 0 );
     my $hidden   = $workbook->add_format( hidden => 1 );
-    my $header      = $workbook->add_format( color => 'black', bold => 1, bg_color => 'silver', center_across => 1 );
+    my $centered      = $workbook->add_format( center_across => 1 );
+    my $header_fmt      = $workbook->add_format( color => 'black', bold => 1, bg_color => 'silver', center_across => 1 );
     my $red      = $workbook->add_format( color => 'red' );
     my $black      = $workbook->add_format( color => 'black' );
 
@@ -49,15 +46,14 @@ sub main
     ##    $worksheet->set_column( 'C:D', 45, $unlocked );
     # Protect the worksheet
     ##    $worksheet->protect({autofilter => 1});
-    $worksheet->set_column( 'A:L', 10 );   # Columns F-H width set to 30
-    $worksheet->set_column( 'E:E', 20, undef, 1 );   # Columns E width set to 20 and hidden
     $worksheet->set_column( 'A:A', 20 );   # Columns F-H width set to 30
     $worksheet->set_column( 'B:B', 50 );   # Columns F-H width set to 30
     $worksheet->set_column( 'C:C', 20 );   # Columns F-H width set to 30
+    $worksheet->set_column( 'D:H', 10, $centered );   # Columns F-H width set to 30
+    $worksheet->set_column( 'E:E', 20, undef, 1 );   # Columns E width set to 20 and hidden
     $worksheet->set_column( 'I:I', 50 );   # Columns F-H width set to 30
     $worksheet->set_column( 'J:J', 50 );   # Columns F-H width set to 30
     $row = 0;
-    if ($LOAD){&load_file($opt_f, \%WANTED);}
   line:    
     while (<>){
 	chomp;       # strip record separator
@@ -70,7 +66,7 @@ sub main
 	    
 	    @HDR = split(/\t/, $_);
 	    $HDR_ref = \@HDR;
-	    $worksheet->write_row( $row++, 0, $HDR_ref, $header );
+	    $worksheet->write_row( $row++, 0, $HDR_ref, $header_fmt );
 	    next line;
 	}
 	if ($opt_I){printf(bugin_fp "%s\n", $_);}
@@ -122,9 +118,6 @@ sub get_rich_string
     return $res;
 }
 
-
-
-
 sub usage
 {
     printf(STDERR "USAGE: $0 -u \n"); 
@@ -132,22 +125,3 @@ sub usage
     #    printf(STDERR "\t-x:\t\n"); 
     exit;
 }
-
-
-sub load_file
-{
-    my($f, $WANTED) = @_;
-    my ($res, $bit, $info);
-    my @BITS;
-    open(in_fp, "$f") || die "Unable to open $f"; 
-    if ($UTF8){
-	binmode(in_fp, ":utf8");
-    }
-    while (<in_fp>){
-	chomp;
-	s|||g;
-	# my ($eid, $info) = split(/\t/);
-	# $W{$_} = 1;
-    }
-    close(in_fp);
-} 
