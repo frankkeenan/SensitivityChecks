@@ -40,22 +40,22 @@ sub main
     # Create some format objects
     my $unlocked = $workbook->add_format( locked => 0 );
     my $hidden   = $workbook->add_format( hidden => 1 );
+    my $header      = $workbook->add_format( color => 'black', bold => 1, bg_color => 'silver', center_across => 1 );
     my $red      = $workbook->add_format( color => 'red' );
     my $black      = $workbook->add_format( color => 'black' );
 
     # Format the columns
     ##    $worksheet->set_column( 'A:A', 45, $unlocked );
     ##    $worksheet->set_column( 'C:D', 45, $unlocked );
-    #    $worksheet->autofilter( 'A1:K1' );
     # Protect the worksheet
     ##    $worksheet->protect({autofilter => 1});
-    $worksheet->set_column( 'E:E', 20 );   # Column  E   width set to 20
-    $worksheet->set_column( 'A:L', 30 );   # Columns F-H width set to 30
-    $worksheet->set_column( 'E:G', 20, undef, 1 );   # Columns E-G width set to 20 and hidden
+    $worksheet->set_column( 'A:L', 10 );   # Columns F-H width set to 30
+    $worksheet->set_column( 'E:E', 20, undef, 1 );   # Columns E width set to 20 and hidden
     $worksheet->set_column( 'A:A', 20 );   # Columns F-H width set to 30
     $worksheet->set_column( 'B:B', 50 );   # Columns F-H width set to 30
+    $worksheet->set_column( 'C:C', 20 );   # Columns F-H width set to 30
     $worksheet->set_column( 'I:I', 50 );   # Columns F-H width set to 30
-    $worksheet->set_column( 'M:M', 50 );   # Columns F-H width set to 30
+    $worksheet->set_column( 'J:J', 50 );   # Columns F-H width set to 30
     $row = 0;
     if ($LOAD){&load_file($opt_f, \%WANTED);}
   line:    
@@ -65,10 +65,12 @@ sub main
 	if ($lc++ < 1)
 	{
 	    # First line has the header
+	    s|^ *\# *||;
 	    $HDR = $_;
+	    
 	    @HDR = split(/\t/, $_);
 	    $HDR_ref = \@HDR;
-	    $worksheet->write_row( $row++, 0, $HDR_ref );
+	    $worksheet->write_row( $row++, 0, $HDR_ref, $header );
 	    next line;
 	}
 	if ($opt_I){printf(bugin_fp "%s\n", $_);}
@@ -94,6 +96,8 @@ sub main
 	$row++;
 	if ($opt_O){printf(bugout_fp "%s\n", $_);}
     }
+    $worksheet->autofilter( 'A1:K1' );
+    $worksheet->freeze_panes( 1, 0 );    # Freeze the first row
     $workbook->close();
     exit;
     &close_debug_files;
