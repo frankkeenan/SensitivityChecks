@@ -13,6 +13,9 @@ $UTF8 = 1;
 $, = ' ';               # set output field separator
 $\ = "\n";              # set output record separator
 
+our($workbook, $worksheet);
+our($unlocked_fmt, $hidden_fmt, $centered_fmt, $header_fmt, $red_fmt, $black_fmt);
+
 &main;
 
 sub main
@@ -30,16 +33,10 @@ sub main
     &open_debug_files;
     if ($opt_D) {binmode DB::OUT,":utf8";}
 
-    my $workbook  = Excel::Writer::XLSX->new( $opt_r );
-    my $worksheet = $workbook->add_worksheet();
+    $workbook  = Excel::Writer::XLSX->new( $opt_r );
+    $worksheet = $workbook->add_worksheet();
 
-    # Create some format objects
-    my $unlocked = $workbook->add_format( locked => 0 );
-    my $hidden   = $workbook->add_format( hidden => 1 );
-    my $centered      = $workbook->add_format( center_across => 1 );
-    my $header_fmt      = $workbook->add_format( color => 'black', bold => 1, bg_color => 'silver', center_across => 1 );
-    my $red      = $workbook->add_format( color => 'red' );
-    my $black      = $workbook->add_format( color => 'black' );
+    &create_format_objects;
 
     # Format the columns
     ##    $worksheet->set_column( 'A:A', 45, $unlocked );
@@ -49,11 +46,11 @@ sub main
     $worksheet->set_column( 'A:A', 20 );   # Columns F-H width set to 30
     $worksheet->set_column( 'B:B', 50 );   # Columns F-H width set to 30
     $worksheet->set_column( 'C:C', 20 );   # Columns F-H width set to 30
-    $worksheet->set_column( 'D:D', 10, $centered );   # Columns F-H width set to 30
-    $worksheet->set_column( 'E:E', 20, undef, 1 );   # Columns E width set to 20 and hidden
-    $worksheet->set_column( 'F:H', 10, $centered );   # Columns F-H width set to 30
-    $worksheet->set_column( 'I:I', 50 );   # Columns F-H width set to 30
+    $worksheet->set_column( 'D:D', 10, $centered_fmt );   # Columns F-H width set to 30
+    $worksheet->set_column( 'E:F', 20, undef, 1 );   # Columns E width set to 20 and hidden
+    $worksheet->set_column( 'G:I', 10, $centered_fmt );   # Columns F-H width set to 30
     $worksheet->set_column( 'J:J', 50 );   # Columns F-H width set to 30
+    $worksheet->set_column( 'K:K', 50 );   # Columns F-H width set to 30
     $row = 0;
   line:    
     while (<>){
@@ -63,11 +60,12 @@ sub main
 	{
 	    # First line has the header
 	    s|^ *\# *||;
-	    $HDR = $_;
-	    
 	    @HDR = split(/\t/, $_);
-	    $HDR_ref = \@HDR;
-	    $worksheet->write_row( $row++, 0, $HDR_ref, $header_fmt );
+	    for ($i=0; $i<13; $i++)
+	    {
+		$worksheet->write_string($row, $i, $HDR[$i], $header_fmt);
+	    }
+	    $row++;
 	    next line;
 	}
 	if ($opt_I){printf(bugin_fp "%s\n", $_);}
@@ -80,11 +78,9 @@ sub main
 	($wd, $context, $hw, $tag, $lexid, $context_cp, $original_text, $pos, $def, $derogatory, $offensive, $vulgar, $sensitivity_classes) = split(/\t/);
 	$worksheet->write_string($row, 0, $wd);
 	#	$worksheet->write_string($row, 1, $context);       	
-	if ($context =~ m|^(.*?)<red>(.*?)</red>(.*)$|)
+	if ($context =~ m|<red|)
 	{
-	    $context = &get_rich_string($context);
-	    $context = sprintf("\$worksheet->write_rich_string( %s, 1, %s)", $row, $context); 
-	    eval $context;
+	    &write_context($context, $row);
 	}
 	for ($i=2; $i<13; $i++)
 	{
@@ -92,7 +88,7 @@ sub main
 	}
 	$row++;
 	if ($opt_O){printf(bugout_fp "%s\n", $_);}
-    }
+  }
     $worksheet->autofilter( 'A1:K1' );
     $worksheet->freeze_panes( 1, 0 );    # Freeze the first row
     $workbook->close();
@@ -100,7 +96,23 @@ sub main
     &close_debug_files;
 }
 
-sub get_rich_string
+sub write_context
+{
+    my($e, $row) = @_;
+    $e = sprintf(" %s ", $e); 
+    if ($e =~ m|^(.*?)<red>(.*?)</red>(.*)$|)
+    {
+	my $pre = $1;
+	my $redwd = $2;
+	my $end = $3;
+	$end =~ s|<red>(.*?)</red>|{{\1}}|gi;
+	$pre =~ s|^ *||;
+	$end =~ s| *$||;
+	$worksheet->write_rich_string($row, 1,  $pre, $red_fmt, $redwd, $end);
+    }
+}
+
+sub get_rich_string_excel_unhappy
 {
     my($e) = @_;
     my($res, $eid);	
@@ -110,15 +122,25 @@ sub get_rich_string
     foreach my $bit (@BITS){
 	if ($bit =~ s|&fk;||gi){
 	    my $bit = restructure::get_tag_contents($bit, "red"); 
-	    $res = sprintf("%s\$red, \"%s\", ", $res, $bit); 
+	    $res = sprintf("%s\$red_fmt, \"%s\", ", $res, $bit); 
 	} else {
-	    $res = sprintf("%s\$black, \"%s\", ", $res, $bit); 
+	    $res = sprintf("%s\$black_fmt, \"%s\", ", $res, $bit); 
 	}
     }	
     $res =~ s|, *$||;
     return $res;
 }
 
+sub create_format_objects
+{
+    # Create some format objects
+    $unlocked_fmt = $workbook->add_format( locked => 0 );
+    $hidden_fmt   = $workbook->add_format( hidden => 1 );
+    $centered_fmt      = $workbook->add_format( center_across => 1 );
+    $header_fmt      = $workbook->add_format( color => 'black', bold => 1, bg_color => 'silver', center_across => 1 );
+    $red_fmt      = $workbook->add_format( color => 'red' );
+    $black_fmt      = $workbook->add_format( color => 'black' );
+}
 sub usage
 {
     printf(STDERR "USAGE: $0 -u \n"); 
