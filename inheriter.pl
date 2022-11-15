@@ -4,12 +4,16 @@ use autodie qw(:all);
 use open qw(:std :utf8);
 use utf8;
 use strict;
-our ($LOG, $LOAD, $opt_f, $opt_u, $opt_D, $opt_I, $opt_O);
-our (%STORE);
-
-require "./utils.pl";
-require "./restructure.pl";
-
+our ($LOG, $LOAD, $opt_f, $opt_u, $opt_v, $opt_D, $opt_I, $opt_O, $VERBOSE);
+if (1)
+{
+    require "/NEWdata/dicts/generic/progs/utils.pl";
+    require "/NEWdata/dicts/generic/progs/restructure.pl";
+}
+else {
+    require "./utils.pl";
+    require "./restructure.pl";
+}
 # require "/data_new/VocabHub/progs/VocabHub.pm";
 #require "/NEWdata/dicts/generic/progs/xsl_lib_fk.pl";
 $LOG = 0;
@@ -17,26 +21,25 @@ $LOAD = 0;
 $, = ' ';               # set output field separator
 $\ = "\n";              # set output record separator
 #undef $/; # read in the whole file at once
-
-our @TOPLIST_TAGS = ("hw-g", "idmsec", "pvsec", "gramb");
-our @TAGS_TO_INHERIT = ("lev", "reg");
-our @TARGET_TAGS = ("sense", "sn-g", "msCore", "semb", "trg");
-
-# rename the tags_to_inherit tags in the @TARGET_TAGS - to avoid them being inherited - with <TMP_
-# Create "inherited-g" tags in the @TARGET_TAGS
-# Foreach of the toplist tags inherit each of the @TAGS_TO_INHERIT into the inherited-g tags - prefix tagname with <i_
-# rename <TMP_ tags back to what they were
+our %STORE;
+our %WTAG;
+our @ITAGS = ("lev", "slev", "label"); # Tags to inherit
+our @TTAGS = ("trg"); # Where to inherit them to
+foreach my $itag (@ITAGS){$WTAG{$itag} = 1;}
+#foreach my $ttag (@TTAGS){$TTAG{$ttag} = 1;}
+our $MAXLEVEL;
 
 &main;
 
 sub main
 {
-    getopts('uf:L:IOD');
+    getopts('uf:L:IOvD');
     &usage if ($opt_u);
     my($e, $res, $bit);
     my(@BITS);
     #   $opt_L = ""; # name of file for the log_fp output to go to
     &open_debug_files;
+    $VERBOSE = 1 if ($opt_v);
     use open qw(:utf8 :std);
     if ($opt_D)
     {
@@ -48,60 +51,143 @@ sub main
 	chomp;       # strip record separator
 	s|||g;
 	if ($opt_I){printf(bugin_fp "%s\n", $_);}
-	$_ = &rename_target_tags($_);
-	$_ = &create_inherited_groups($_);
-	foreach my $toplist_tag (@TOPLIST_TAGS) 
+	# s|<!--.*?-->||gio;
+	#	next line if (m|<entry[^>]*sup=\"y|io);
+	#	unless (m|<entry|){print $_; next line;}
+	# $h = &get_hex_h($_, "hex", 1); # the 1 says to remove stress etc
+	# $eid = &get_tag_attval($_, "entry", "eid");
+	# $EntryId = &get_dps_entry_id($_);
+	# $_ = &reduce_idmids($_);
+	# s|£|&\#x00A3;|g;
+	unless (m|<e |)
 	{
-	    $_ = &inherit_tags($_, $toplist_tag);
+	    print $_;
+	    next line;
 	}
-	s|<(/?)TMP_|<\1|g;
-	s|<inherited-g *> *</inherited-g>||gi;
+	undef %STORE;
+	$MAXLEVEL = 1;
+	$_ = restructure::delabel($_);	
+	# $tagname = restructure::get_tagname($bit);    
+	foreach my $tag (@ITAGS)
+	{
+	    $_ = &add_value_as_attribute($_, $tag);
+	}
+	$_ = restructure::tag_delete($_, "prx"); 
+	$_ = restructure::delabel($_);	
+	$_ = &duplicate_hwg_levs_to_grambs($_);
+	foreach my $ttag (@TTAGS)
+	{
+	    s|(</$ttag>)|<IGRP ></IGRP>$1|gi;
+	}
+	$_ = restructure::add_levels_info($_, "e");
+	print $_ if ($VERBOSE);
+	$_ = &inherit_down($_);
+	s|<IGRP[^>]*> *</IGRP>||gi;
+	s| level=\".*?\"||g unless ($VERBOSE);
 	print $_;
+	printf("\n"); 
 	if ($opt_O){printf(bugout_fp "%s\n", $_);}
     }
     &close_debug_files;
 }
 
-sub inherit_tags
+sub inherit_down
 {
-    my($e, $toplist_tag) = @_;
+    my($e) = @_;
     my($res, $eid);	
-    my($bit, $res);
+    my($bit, $level, $maxlevel, $value);
     my(@BITS);
-    $e =~ s|(<$toplist_tag[ >].*?</$toplist_tag>)|&split;&fk;$1&split;|gi;    
+    $e =~ s|(<[^/].*?>)|&split;&fk;$1&split;|gi;
     @BITS = split(/&split;/, $e);
     $res = "";
     foreach my $bit (@BITS){
 	if ($bit =~ s|&fk;||gi){
-	    my $inherit_dat = &store_tags_to_inherit($bit);
-	    $bit =~ s|(</inherited-g>)|$inherit_dat$1|g;
+	    my $tagname = restructure::get_tagname($bit);    
+	    $level = restructure::get_tag_attval($bit, $tagname, "level"); 
+	    if ($level > $MAXLEVEL)
+	    {
+		$MAXLEVEL = $level;
+	    }
+	    &delete_stored_below($level);
+	    if ($WTAG{$tagname} == 1)
+	    {
+		$value = restructure::get_tag_attval($bit, $tagname, "tval"); 
+		printf("STORE: %s\t%s\t%s\n", $tagname, $level, $value) if ($VERBOSE);  
+		$STORE{$level} .= sprintf("<$tagname>%s</$tagname>", $value); 
+	    }
+	    if ($tagname =~ m|IGRP|)
+	    {
+		my $ilevs = &get_levs_above($level);
+		$bit = sprintf("%s%s", $bit, $ilevs); 
+	    }
+	    printf("%s\t%s\t%s\n", $level, $tagname, $bit)  if ($VERBOSE); 
 	}
 	$res .= $bit;
+    }    
+    return $res;
+}
+
+sub get_levs_above
+{
+    my($level) = @_;
+    my($res, $eid);	
+    for (my $i=0; $i <= $level; $i++)
+    {
+	$res .= $STORE{$i};
+    }    
+    return $res;
+}
+
+sub delete_stored_below
+{
+    my($level) = @_;
+    my($res, $eid);	
+    for (my $i=$level+1; $i <= $MAXLEVEL; $i++)
+    {
+	delete $STORE{$i};
     }
     return $res;
 }
 
-sub store_tags_to_inherit
+sub duplicate_hwg_levs_to_grambs
 {
     my($e) = @_;
-    undef %STORE;
-    foreach my $tag_to_inherit (@TAGS_TO_INHERIT)
+    my($res, $hlevs);	
+    my $hwg = restructure::get_tag_contents($e, "hwg");
+    if ($hwg =~ m|<lev|)
     {
-	&store_tag_to_inherit($e, $tag_to_inherit);
+	my $hlevs = &get_levs($hwg);
+	$e =~ s|(<gramb[^>]*>)|$1$hlevs|;
     }
-    my $res;
-    foreach my $tag (sort keys %STORE)
-    {
-	$res .= $tag;
-    }
+    return $e;
+}
+
+
+sub get_levs
+{
+    my($e) = @_;
+    my($res, $eid);	
+    my %USED;
+    my(@BITS);
+    $e =~ s|(<lev[ >].*?</lev>)|&split;&fk;$1&split;|gi;
+    @BITS = split(/&split;/, $e);
+    $res = "";
+    foreach my $bit (@BITS){
+	if ($bit =~ s|&fk;||gi){
+	    my $lev = restructure::get_tag_contents($bit, "lev"); 
+	    unless ($USED{$lev}++)
+	    {
+		$res .= $bit;
+	    }
+	}
+    }    
     return $res;
 }
 
-sub store_tag_to_inherit
+sub add_value_as_attribute
 {
     my($e, $tag) = @_;
-    my $newtag = $tag;
-    $newtag =~ s|^ *|i_|;
+    my($res, $eid);	
     my($bit, $res);
     my(@BITS);
     $e =~ s|(<$tag[ >].*?</$tag>)|&split;&fk;$1&split;|gi;
@@ -109,74 +195,15 @@ sub store_tag_to_inherit
     $res = "";
     foreach my $bit (@BITS){
 	if ($bit =~ s|&fk;||gi){
-	    $bit =~ s| e:[^ =]*=\".*?\"||gi;
-	    $bit =~ s| lexid[^ =]*=\".*?\"||gi;
-	    $bit =~ s| xmlns[^ =]*=\".*?\"||gi;
-	    $bit = restructure::tag_rename($bit, $tag, $newtag);
-	    $bit =~ s|\s+| |g;
-	    $STORE{$bit} = 1;
-	}
-    }    
-}
-
-sub inherit_tags_to_chunk
-{
-    my($e, $tag_to_inherit) = @_;
-    my($res, $eid);
-    my($bit, $res);
-    my(@BITS);
-    return $res;
-}
-
-sub create_inherited_groups
-{
-    my($e) = @_;
-    my($res, $eid);	
-    foreach my $target_tag (@TARGET_TAGS)
-    {
-	$e =~ s|(</$target_tag>)|<inherited-g ></inherited-g>$1|gi;
-    }
-    return $e;
-}
-
-sub rename_target_tags
-{
-    my($e) = @_;
-    my($res, $eid);	
-    $res = "";
-    foreach my $target_tag (@TARGET_TAGS)
-    {
-	foreach my $tag_to_inherit (@TAGS_TO_INHERIT)
-	{
-	    my $tmp_tag = $tag_to_inherit;
-	    $tmp_tag =~ s|^|TMP_|;
-	    if ($e =~ m|<$target_tag[ >]|)
-	    {
-		$e = &rename_tags_inside_target_tags($e, $target_tag, $tag_to_inherit, $tmp_tag);
-	    }
-	}
-    }
-    return $e;
-}
-
-sub rename_tags_inside_target_tags
-{
-    my($e, $target_tag, $old_tag, $new_tag) = @_;
-    my($res, $eid);	
-    my(@BITS);
-    $e =~ s|(<$target_tag[ >].*?</$target_tag>)|&split;&fk;$1&split;|gi;
-    @BITS = split(/&split;/, $e);
-    $res = "";
-    foreach my $bit (@BITS){
-	if ($bit =~ s|&fk;||gi){
-	    $bit = restructure::tag_rename($bit, $old_tag, $new_tag);
+	    my $txt = restructure::get_tag_contents($bit, $tag);
+	    $txt =~ s|<.*?>||gi;
+	    $txt =~ s|[\"\']||gi;
+	    $bit = restructure::set_tag_attval($bit, $tag, "tval", $txt); 
 	}
 	$res .= $bit;
     }    
     return $res;
 }
-
-
 
 sub usage
 {
