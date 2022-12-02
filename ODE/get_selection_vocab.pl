@@ -28,11 +28,13 @@ sub main
     getopts('uf:L:IODd');
     &usage if ($opt_u);
     my($e, $res, $bit);
+    my %USED;
     my(@BITS);
     #   $opt_L = ""; # name of file for the log_fp output to go to
     &open_debug_files;
     use open qw(:utf8 :std);
     binmode DB::OUT,":utf8" if ($opt_D);
+    printf("<dict>\n"); 
     if ($LOAD){&load_file($opt_f);}
   line:    
     while (<>){
@@ -46,12 +48,30 @@ sub main
         # $_ = restructure::delabel($_);	
 	# $tagname = restructure::get_tagname($bit);    
 	my $wanted_sensitivities = &check_wanted($_);
-	unless ($wanted_sensitivities =~ m|^ *$|)
+	if ($wanted_sensitivities =~ m|^ *$|)
 	{
-	    printf("%s\t<SCLASS>%s</SCLASS>\n", $_, $wanted_sensitivities); 
+	    next line;
+	}
+	my $def = restructure::get_tag_contents($_, "DEF");
+	undef %USED;
+	my $hw = restructure::get_tag_contents($_, "hw");
+	printf("<e><wd>%s</wd><SENS>%s</SENS><def>%s</def><hw>%s</hw></e>\n", $hw, $wanted_sensitivities, $def, $hw);
+	$USED{$hw}++;
+	$_ =~ s|(<infl[ >].*?</infl>)|&split;&fk;$1&split;|gi;
+	@BITS = split(/&split;/, $_);
+	$res = "";
+	foreach my $bit (@BITS){
+	    if ($bit =~ s|&fk;||gi){
+		my $infl = restructure::get_tag_contents($bit, "infl");
+		unless ($USED{$infl}++)
+		{
+		    printf("<e><wd>%s</wd><SENS>%s</SENS><def>%s</def><hw>%s</hw></e>\n", $infl, $wanted_sensitivities, $def, $hw);
+		}
+	    }
 	}
 	if ($opt_O){printf(bugout_fp "%s\n", $_);}
     }
+    printf("</dict>\n");
     &close_debug_files;
 }
 
