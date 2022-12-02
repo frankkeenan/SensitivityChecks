@@ -55,20 +55,8 @@ sub main
 	my $def = restructure::get_tag_contents($_, "DEF");
 	undef %USED;
 	my $hw = restructure::get_tag_contents($_, "hw");
-	printf("<e><wd>%s</wd><SENS>%s</SENS><def>%s</def><hw>%s</hw></e>\n", $hw, $wanted_sensitivities, $def, $hw);
-	$USED{$hw}++;
-	$_ =~ s|(<infl[ >].*?</infl>)|&split;&fk;$1&split;|gi;
-	@BITS = split(/&split;/, $_);
-	$res = "";
-	foreach my $bit (@BITS){
-	    if ($bit =~ s|&fk;||gi){
-		my $infl = restructure::get_tag_contents($bit, "infl");
-		unless ($USED{$infl}++)
-		{
-		    printf("<e><wd>%s</wd><SENS>%s</SENS><def>%s</def><hw>%s</hw></e>\n", $infl, $wanted_sensitivities, $def, $hw);
-		}
-	    }
-	}
+	my $wd = restructure::get_tag_contents($_, "wd");
+	printf("<e><wd>%s</wd><SENS>%s</SENS><def>%s</def><hw>%s</hw></e>\n", $wd, $wanted_sensitivities, $def, $hw);
 	if ($opt_O){printf(bugout_fp "%s\n", $_);}
     }
     printf("</dict>\n");

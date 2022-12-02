@@ -5,9 +5,10 @@ use open qw(:std :utf8);
 use utf8;
 use Excel::Writer::XLSX;
 use strict;
-our ($LOG, $LOAD, $opt_P, $opt_f, $opt_r, $opt_u, $opt_D, $opt_I, $opt_O, @SCLASSES, %SINFO);
+our ($LOG, $LOAD, $opt_P, $opt_f, $opt_r, $opt_u, $opt_D, $opt_I, $opt_O, @SCLASSES, %SINFO, %ALL_CLASSES);
 our ($workbook, $worksheet);
-our ($unlocked, $locked, $hidden, $format1, $format2, $fmt_wrap);
+our ($workbook_classes, $worksheet_classes);
+our ($unlocked, $locked, $hidden, $format_row, $format_hdr, $fmt_wrap);
 if (0)
 {
     require "/NEWdata/dicts/generic/progs/utils.pl";
@@ -40,17 +41,24 @@ sub main
     {
 	$opt_r = "ode_noad_sensitivity_info.xlsx";
     }
+    my $classes_f = $opt_r;
+    $classes_f =~ s|^(.*)\.|\1_classes.|;
     if ($opt_D){binmode DB::OUT,":utf8";}
 
     $workbook  = Excel::Writer::XLSX->new( $opt_r );
     $worksheet = $workbook->add_worksheet();
+    #
+    $workbook_classes  = Excel::Writer::XLSX->new( $classes_f );
+    $worksheet_classes = $workbook_classes->add_worksheet();
+    #
     &do_formats;
     my $row = 0;
 
     my @HDR = ("Word", @SCLASSES, "Inflections", "Definition");
-    $worksheet->write_row( $row++, 0, \@HDR, $format2);
+    $worksheet->write_row( $row++, 0, \@HDR, $format_hdr);
     #    my $hdr = join("\t", @HDR);
     #    print $hdr;
+    printf("<dict>\n"); 
     if ($LOAD){&load_file($opt_f);}
   line:    
     while (<>){
@@ -71,25 +79,61 @@ sub main
 	foreach my $bit (@BITS){
 	    if ($bit =~ s|&fk;||gi){
 		my $hw = restructure::get_tag_contents($bit, "headword");
-		my $scs = &get_sensitivity_classes($bit);
+		my ($scs, $tag_scs) = &get_sensitivity_classes($bit);
 		if ($scs =~ m|^ *$|)
 		{
 		    # no sensitive terms
 		    next floop;
 		}
+		$bit = &lose_non_sensitive_senses($bit);
 		my $forms = &get_forms($bit);
 		my $def = &get_def($bit);
 		my $e = sprintf("%s\t%s\t%s\t%s", $hw, $scs, $forms, $def);
+		printf("<e ><hw>$hw</hw><SENS-G>$tag_scs</SENS-G><FORMS>$forms</FORMS><DEF>$def</DEF></e>\n"); 
 		my @E = split(/\t/, $e);
-		$worksheet->write_row( $row++, 0, \@E);
+		$worksheet->write_row( $row++, 0, \@E, $format_row);
 	    }
 	    $res .= $bit;
       }
 	if ($opt_O){printf(bugout_fp "%s\n", $_);}
     }
+    $row = 0;
+    @HDR = ("Type", "Class", "Select", "Freq in ODE");
+    $worksheet_classes->write_row( $row++, 0, \@HDR, $format_hdr);
+    foreach my $tc (sort keys %ALL_CLASSES)
+    {
+	my $e = sprintf("%s\ty\t%s", $tc, $ALL_CLASSES{$tc});
+	my @E = split(/\t/, $e);
+	$worksheet_classes->write_row( $row++, 0, \@E, $format_row);
+    }
+    printf("</dict>\n");
     $workbook->close();
+    $workbook_classes->close();
     &close_debug_files;
 }
+
+sub lose_non_sensitive_senses
+{
+    my($e) = @_;
+    my($res, $eid);
+    my($bit, $res);
+    my(@BITS);
+    $e =~ s|(<sense[ >].*?</sense>)|&split;&fk;$1&split;|gi;
+    @BITS = split(/&split;/, $e);
+    $res = "";
+    foreach my $bit (@BITS){
+	if ($bit =~ s|&fk;||gi){
+	    unless ($bit =~ m|<classSensitivity|)
+	    {
+		$bit = "";
+	    }
+	}
+	$res .= $bit;
+    }    
+    return $res;
+}
+
+
 
 sub remove_gendered_person
 {
@@ -117,19 +161,28 @@ sub remove_gendered_person
     return $res;
 }
 
-
-
 sub get_def
 {
     my($e) = @_;
     my($res, $eid);	
-    $res = restructure::get_tag_contents($e, "shortDefinition"); 
-    if ($res =~ m|^ *$|)
-    {
-	$res = restructure::get_tag_contents($e, "definition"); 
+    my($bit, $res);
+    my(@BITS);
+    $e =~ s|(<sense[ >].*?</sense>)|&split;&fk;$1&split;|gi;
+    @BITS = split(/&split;/, $e);
+    $res = "";
+    foreach my $bit (@BITS){
+	if ($bit =~ s|&fk;||gi){
+	    my $def = restructure::get_tag_contents($bit, "shortDefinition"); 
+	    if ($def =~ m|^ *$|)
+	    {
+		$def = restructure::get_tag_contents($bit, "definition"); 
+	    }
+	    $res .= sprintf("%s; ", $def); 
+	}
     }
     $res =~ s|<.*?>| |g;
     $res =~ s| +| |g;
+    $res =~ s|[; ]*$||g;
     return $res;
 }
 
@@ -163,6 +216,7 @@ sub get_sensitivity_classes
     $e =~ s|(<classSensitivity[ >].*?</classSensitivity>)|&split;&fk;$1&split;|gi;
     my @BITS = split(/&split;/, $e);
     my $res = "";
+    my $tres = "";
     foreach my $bit (@BITS){
 	if ($bit =~ s|&fk;||gi){
 	    my $type = restructure::get_tag_attval($bit, "classSensitivity", "value"); 
@@ -172,9 +226,11 @@ sub get_sensitivity_classes
 		$class = "y";
 	    }
 	    my $tc = sprintf("%s\t%s", $type, $class); 
+	    $ALL_CLASSES{$tc}++; # Store the info for the selection spreadsheet
 	    unless ($USED{$tc}++)
 	    {
 		$SINFO{$type} .= sprintf("%s, ", $class); 
+		$tres .= sprintf("<sens type=\"$type\">$class</sens>"); 
 	    }
 	}
     }    
@@ -195,7 +251,7 @@ sub get_sensitivity_classes
     {
 	$res = "";
     }
-    return $res;
+    return ($res, $tres);
 }
 
 
@@ -230,19 +286,13 @@ sub do_formats
     $unlocked = $workbook->add_format( locked => 0 );
     $locked = $workbook->add_format( locked => 1 );
     $hidden   = $workbook->add_format( hidden => 1 );
-    # Light red fill with dark red text.
-    $format1 = $workbook->add_format(
-	bg_color => '#E6FFFF',
-	color    => '#9C0006',
-	
-	);
+    # Blue bg, black text
+    $format_hdr = $workbook->add_format(bg_color => '#B7FEF8', color    => '#020001',);
+    $format_hdr = $workbook_classes->add_format(bg_color => '#B7FEF8', color    => '#020001',);
     
     # Green fill with dark green text.
-    $format2 = $workbook->add_format(
-	bg_color => '#C6EFCE',
-	color    => '#006100',
-	
-	);
+    $format_row = $workbook->add_format( color    => '#020001',);
+    $format_row = $workbook_classes->add_format( color    => '#020001',);
     $fmt_wrap = $workbook->add_format();
     $fmt_wrap->set_text_wrap();
     # Format the columns
@@ -252,7 +302,11 @@ sub do_formats
     $worksheet->set_column( 'B:R', 10, $unlocked );
     $worksheet->set_column( 'S:S', 10, $unlocked );
     $worksheet->set_column( 'T:T', 10, $unlocked );
-    
+    $worksheet_classes->autofilter( 'A1:D999' );
+    $worksheet_classes->freeze_panes( 1 );    # Freeze the first row
+    $worksheet_classes->set_column( 'A:B', 30, $unlocked );
+    $worksheet_classes->set_column( 'C:D', 15, $unlocked );
+
     #    $worksheet->autofilter( 'A1:K1' );
     #    # Protect the worksheet
     #    $worksheet->protect("", {autofilter => 1});
