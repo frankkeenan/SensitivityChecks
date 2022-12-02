@@ -14,7 +14,7 @@ $LOG = 1;
 $LOAD = 0;
 $, = ' ';               # set output field separator
 $\ = "\n";              # set output record separator
-#undef $/; # read in the whole file at once
+#undef $/; 
 our ($workbook, $worksheet);
 our ($unlocked, $locked, $hidden, $format1, $format2, $fmt_wrap);
 our($opt_u);

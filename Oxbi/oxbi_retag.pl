@@ -83,7 +83,7 @@ sub main
 	    s| *(<lev[^>]*>.*?</lev[^>]*>) *| (\1) |gi;
 	    s|</tr><tr [^>]*>|, |gi;
 	    $_ = &do_xrefs($_);
-	    # Just an OxBi piece of crap to put the labels into the gramg's as well
+	    # Rename levs in examples
 	    $_ = restructure::rename_tag_in_tag($_, "lev", "x-gs", "txlev");
 	    if ($hwg =~ m|<lev|)
 	    {
