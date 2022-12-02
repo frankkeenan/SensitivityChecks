@@ -3,11 +3,8 @@ use Getopt::Std;
 use autodie qw(:all);
 use open qw(:std :utf8);
 use utf8;
-use Excel::Writer::XLSX;
 use strict;
-our ($LOG, $LOAD, $opt_P, $opt_f, $opt_r, $opt_u, $opt_D, $opt_I, $opt_O, @SCLASSES, %SINFO);
-our ($workbook, $worksheet);
-our ($unlocked, $locked, $hidden, $format1, $format2, $fmt_wrap);
+our ($LOG, $LOAD, $opt_f, $opt_u, $opt_D, $opt_I, $opt_O, @SCLASSES, %SINFO);
 if (0)
 {
     require "/NEWdata/dicts/generic/progs/utils.pl";
@@ -29,28 +26,20 @@ $\ = "\n";              # set output record separator
 
 sub main
 {
-    getopts('uf:L:IODr:P');
+    getopts('uf:L:IOD');
     &usage if ($opt_u);
     my($e, $res, $bit);
     my(@BITS);
     #   $opt_L = ""; # name of file for the log_fp output to go to
     &open_debug_files;
     use open qw(:utf8 :std);
-    unless ($opt_r)
+    if ($opt_D)
     {
-	$opt_r = "ode_noad_sensitivity_info.xlsx";
+	binmode DB::OUT,":utf8";
     }
-    if ($opt_D){binmode DB::OUT,":utf8";}
-
-    $workbook  = Excel::Writer::XLSX->new( $opt_r );
-    $worksheet = $workbook->add_worksheet();
-    &do_formats;
-    my $row = 0;
-
     my @HDR = ("Word", @SCLASSES, "Inflections", "Definition");
-    $worksheet->write_row( $row++, 0, \@HDR, $format2);
-    #    my $hdr = join("\t", @HDR);
-    #    print $hdr;
+    my $hdr = join("\t", @HDR);
+    print $hdr;
     if ($LOAD){&load_file($opt_f);}
   line:    
     while (<>){
@@ -60,10 +49,6 @@ sub main
 	# s|£|&\#x00A3;|g;
 	$_ = restructure::delabel($_);	
 	# $tagname = restructure::get_tagname($bit);    
-	if ($opt_P)
-	{
-	    $_ = &remove_gendered_person($_);
-	}
 	$_ =~ s|(<entry[ >].*?</entry>)|&split;&fk;$1&split;|gi;
 	my @BITS = split(/&split;/, $_);
 	my $res = "";
@@ -72,52 +57,18 @@ sub main
 	    if ($bit =~ s|&fk;||gi){
 		my $hw = restructure::get_tag_contents($bit, "headword");
 		my $scs = &get_sensitivity_classes($bit);
-		if ($scs =~ m|^ *$|)
-		{
-		    # no sensitive terms
-		    next floop;
-		}
 		my $forms = &get_forms($bit);
 		my $def = &get_def($bit);
-		my $e = sprintf("%s\t%s\t%s\t%s", $hw, $scs, $forms, $def);
-		my @E = split(/\t/, $e);
-		$worksheet->write_row( $row++, 0, \@E);
+		printf("%s\t%s\t%s\t%s\n", $hw, $scs, $forms, $def); 
 	    }
 	    $res .= $bit;
       }
+	
+	#	print $_;
 	if ($opt_O){printf(bugout_fp "%s\n", $_);}
     }
-    $workbook->close();
     &close_debug_files;
 }
-
-sub remove_gendered_person
-{
-    my($e) = @_;
-    my($res, $eid);	
-    my($bit, $res);
-    my(@BITS);
-    $e =~ s|(<classSensitivity[ >].*?</classSensitivity>)|&split;&fk;$1&split;|gi;
-    @BITS = split(/&split;/, $e);
-    $res = "";
-    foreach my $bit (@BITS){
-	if ($bit =~ s|&fk;||gi){
-	    my $value = restructure::get_tag_attval($bit, "classSensitivity", "value"); 
-	    if ($value =~ m|gendered|)
-	    {
-		my $class = restructure::get_tag_contents($bit, "classSensitivity");
-		if ($class =~ m|^ *person *$|i)
-		{
-		    $bit = "";
-		}
-	    }	    
-	}
-	$res .= $bit;
-    }    
-    return $res;
-}
-
-
 
 sub get_def
 {
@@ -178,23 +129,14 @@ sub get_sensitivity_classes
 	    }
 	}
     }    
-    my $p;
     foreach my $type (@SCLASSES)
     {
 	my $sinfo = $SINFO{$type};
 	$sinfo =~ s|, *$||;
-	unless ($sinfo =~ m|^ *$|)
-	{
-	    $p = 1;
-	}
 	$res .= sprintf("%s£", $sinfo); 
     }
     $res =~ s|£$||;
     $res =~ s|£|\t|g;
-    unless ($p)
-    {
-	$res = "";
-    }
     return $res;
 }
 
@@ -203,8 +145,7 @@ sub usage
 {
     printf(STDERR "USAGE: $0 -u \n"); 
     printf(STDERR "\t-u:\tDisplay usage\n"); 
-    printf(STDERR "\t-r fname.xlsx:\tThe excel file that will be created [default: ode_noad_sensitivity_info.xlsx]\n");
-    printf(STDERR "\t-P:\tRemove <classSensitivity value=\"gendered\">person</classSensitivity>\n"); 
+    #    printf(STDERR "\t-x:\t\n"); 
     exit;
 }
 
@@ -224,38 +165,3 @@ sub load_file
     }
     close(in_fp);
 } 
-
-sub do_formats
-{    # Create some format objects
-    $unlocked = $workbook->add_format( locked => 0 );
-    $locked = $workbook->add_format( locked => 1 );
-    $hidden   = $workbook->add_format( hidden => 1 );
-    # Light red fill with dark red text.
-    $format1 = $workbook->add_format(
-	bg_color => '#E6FFFF',
-	color    => '#9C0006',
-	
-	);
-    
-    # Green fill with dark green text.
-    $format2 = $workbook->add_format(
-	bg_color => '#C6EFCE',
-	color    => '#006100',
-	
-	);
-    $fmt_wrap = $workbook->add_format();
-    $fmt_wrap->set_text_wrap();
-    # Format the columns
-    $worksheet->autofilter( 'A1:U99999' );
-    $worksheet->freeze_panes( 1 );    # Freeze the first row
-    $worksheet->set_column( 'A:A', 30, $unlocked );
-    $worksheet->set_column( 'B:R', 10, $unlocked );
-    $worksheet->set_column( 'S:S', 10, $unlocked );
-    $worksheet->set_column( 'T:T', 10, $unlocked );
-    
-    #    $worksheet->autofilter( 'A1:K1' );
-    #    # Protect the worksheet
-    #    $worksheet->protect("", {autofilter => 1});
-    #    $worksheet->protect({autofilter => 1});
-    #    protectWorksheet(wb, sheet = i, protect = TRUE, password = "Password") #Protect each sheet
-}
