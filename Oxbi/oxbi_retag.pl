@@ -40,9 +40,18 @@ sub main
 	chomp;       # strip record separator
 	s|||g;
 	if ($opt_I){printf(bugin_fp "%s\n", $_);}
+	for (my $i=0; $i < 5; $i++)
+	{
+	    $_ = restructure::move_back_out_of($_, "trg", "lev");
+	    $_ = restructure::move_back_into($_, "tr", "lev");
+	}
+	$_ = restructure::rename_tag_in_tag($_, "exg", "lev", "levx");
+	$_ = restructure::rename_tag_in_tag($_, "trg", "lev", "levt");
+	# $e = restructure::rename_tag_in_tag($e, $container, $oldtag, $newtag);
 	s|£|&\#x00A3;|g;
 	s|<semb|£<semb|g;
 	s|</semb>|</semb>£|g;
+	s|<([a-z-]+)>|<\1 >|gi;
 	if (m|<semb[^£]*£<semb|)
 	{
 	    s|<semb([^£]*)</semb>|<subsemb\1</subsemb>|gi;
@@ -59,10 +68,23 @@ sub main
 	    $_ = restructure::add_group_tag_outsidegroup($_, "trg", "trans-gs", "trans-gs");
 	    $_ = restructure::add_group_tag_outsidegroup($_, "xrg", "xr-gs", "xr-gs");
 	    $_ = restructure::move_back_into($_, "tr", "co");
-	    s|<co>|<co >|gi;
-	    s| *<co [^>]*>(.*?)</co> *| (\1) |gi;
+	    $_ = &add_form_info($_);
 
+	    s|(<semb[^>]*ngnum=\"(.*?)\"[^>]*>) *|\1\2. |gi;
+	    s|<([a-z0-9\-_]+)>|<\1 >|gi;
+	    s|<co>|<co >|gi;
+	    s| *<fld [^>]*>(.*?)</fld> *| (\1) |gi;
+	    s| *<co [^>]*>(.*?)</co> *| (\1) |gi;
+	    s| *<cs [^>]*>(.*?)</cs> *| (\1) |gi;
+	    s| *<gr [^>]*>(.*?)</gr> *| (\1) |gi;
+	    s| *(<reg [^>]*>.*?</reg>) *| (\1) |gi;
+	    s| *(<ind [^>]*>.*?</ind>) *| (\1) |gi;
+	    s| *(<label [^>]*>.*?</label>) *| (\1) |gi;
+	    s| *(<lev[^>]*>.*?</lev[^>]*>) *| (\1) |gi;
+	    s|</tr><tr [^>]*>|, |gi;
+	    $_ = &do_xrefs($_);
 	    # Just an OxBi piece of crap to put the labels into the gramg's as well
+	    $_ = restructure::rename_tag_in_tag($_, "lev", "x-gs", "txlev");
 	    if ($hwg =~ m|<lev|)
 	    {
 		my $lev_tags = &get_lev_tags($hwg);
@@ -71,8 +93,106 @@ sub main
 	}
 	print $_;
 	if ($opt_O){printf(bugout_fp "%s\n", $_);}
-  }
+    }
     &close_debug_files;
+}
+
+###
+sub add_form_info
+{
+    my($e) = @_;
+    my($res, $eid);	
+    $e = &add_semb_forms($e);
+    $e = &add_gramb_forms($e);
+    my $hw = restructure::get_tag_contents($e, "hw");
+    $e = &add_form_atts($e, $hw);
+    return $e;
+}
+
+sub add_form_atts
+{
+    my($e, $frm) = @_;
+    my($res, $eid);	
+    $e =~ s|(<semb[ >].*?>)|&split;&fk;$1&split;|gi;
+    my @BITS = split(/&split;/, $e);
+    my $res = "";
+    foreach my $bit (@BITS){
+	if ($bit =~ s|&fk;||gi){
+	    my $sfrm = restructure::get_tag_attval($bit, "semb", "form");
+	    if ($sfrm =~ m|^ *$|)
+	    {
+		$bit = restructure::set_tag_attval($bit, "semb", "form", $frm); 
+	    }
+	}
+	$res .= $bit;
+    }    
+    return $res;
+}
+
+sub add_gramb_forms
+{
+    my($e) = @_;
+    my($res, $eid);	
+    $e =~ s|(<gramb[ >].*?</gramb>)|&split;&fk;$1&split;|gi;
+    my @BITS = split(/&split;/, $e);
+    my $res = "";
+    foreach my $bit (@BITS){
+	if ($bit =~ s|&fk;||gi){
+	    if ($bit =~ m|<frm|)
+	    {
+		my $form = restructure::get_tag_contents($bit, "frm");
+		$bit = &add_form_atts($bit, $form);
+	    }
+	}
+	$res .= $bit;
+    }    
+    return $res;
+}
+
+sub add_semb_forms
+{
+    my($e) = @_;
+    my($res, $eid);	
+    $e =~ s|(<semb[ >].*?</semb>)|&split;&fk;$1&split;|gi;
+    my @BITS = split(/&split;/, $e);
+    my $res = "";
+    foreach my $bit (@BITS){
+	if ($bit =~ s|&fk;||gi){
+	    if ($bit =~ m|<frm|)
+	    {
+		my $form = restructure::get_tag_contents($bit, "frm");
+		$bit = restructure::set_tag_attval($bit, "semb", "form", $form); 
+	    }
+	}
+	$res .= $bit;
+    }    
+    return $res;
+}
+
+###
+
+sub do_xrefs
+{
+    my($e) = @_;
+    my($res, $eid);	
+    my($bit, $res);
+    my(@BITS);
+    $e = restructure::tag_delete($e, "xrlabelGroup"); 
+    $e =~ s|(<xr-gs[ >].*?</xr-gs>)|&split;&fk;$1&split;|gi;
+    @BITS = split(/&split;/, $e);
+    $res = "";
+    foreach my $bit (@BITS){
+	if ($bit =~ s|&fk;||gi){
+	    $bit =~ s|</xrg><xrg[^>]*>|, |gi;
+	    $bit =~ s|</xr><xr[^>]*>| |gi;
+	    $bit = restructure::lose_tag($bit, "xrg"); # lose the tags but not the contents	    
+	    $bit =~ s| *(<xr-gs[^>]*>) *| ➔ \1|gi;
+	    $bit = restructure::lose_tag($bit, "xr"); # lose the tags but not the contents
+	    $bit = restructure::lose_tag($bit, "xr-gs"); # lose the tags but not the contents	    
+	}
+	$res .= $bit;
+    }    
+    return $res;
 }
 
 sub do_gramgs
@@ -101,8 +221,8 @@ sub do_senses
     my $res = "";
     foreach my $bit (@BITS){
 	if ($bit =~ s|&fk;||gi){
-	    $pos = restructure::get_tag_contents($bit, "ps");
-	    $worksheet->write($row, 3, $pos, $fmt_wrap);
+	    my $ngnum = restructure::get_tag_attval($bit, "semb", "ngnum");
+	    s|(<semb[^>]*>)|$ngnum. |;
 	    $bit = restructure::add_group_tag_outsidegroup($bit, "trg", "trans-gs", "trans-gs");
 	    $bit = restructure::add_group_tag_outsidegroup($bit, "x-gs", "exg", "x-gs");
 	    $maxrow = &do_trans($bit, $srow, $maxrow);
@@ -121,10 +241,6 @@ sub do_trans
     
     return $res;
 }
-
-
-
-
 
 sub inherit_levs_to_gramgs
 {
@@ -201,44 +317,4 @@ sub get_lev_tags
 }
 
 
-sub do_formats
-{    # Create some format objects
-    $unlocked = $workbook->add_format( locked => 0 );
-    $locked = $workbook->add_format( locked => 1 );
-    $hidden   = $workbook->add_format( hidden => 1 );
-    # Light red fill with dark red text.
-    $format1 = $workbook->add_format(
-	bg_color => '#E6FFFF',
-	color    => '#9C0006',
-	
-	);
-    
-    # Green fill with dark green text.
-    $format2 = $workbook->add_format(
-	bg_color => '#C6EFCE',
-	color    => '#006100',
-	
-	);
-    $fmt_wrap = $workbook->add_format();
-    $fmt_wrap->set_text_wrap();
-    # Format the columns
-    $worksheet->autofilter( 'A1:I9999' );
-    $worksheet->freeze_panes( 1 );    # Freeze the first row
-    if (0)
-    {
-	$worksheet->set_column( 'A:A', 20, $unlocked );
-	$worksheet->set_column( 'B:B', 20, $unlocked );
-	$worksheet->set_column( 'C:C', 30, $unlocked );
-	$worksheet->set_column( 'D:D', 80, $unlocked );
-	$worksheet->set_column( 'E:E', 80, $unlocked );
-	$worksheet->set_column( 'F:F', 25, $locked );
-	$worksheet->set_column( 'G:I', 25, $locked );
-	$worksheet->set_column( 'G:I', undef, undef, 1);
-    }
-    #    $worksheet->autofilter( 'A1:K1' );
-    #    # Protect the worksheet
-    $worksheet->protect("", {autofilter => 1});
-    #    $worksheet->protect({autofilter => 1});
-    #    protectWorksheet(wb, sheet = i, protect = TRUE, password = "Password") #Protect each sheet
-}
 
