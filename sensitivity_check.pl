@@ -5,7 +5,7 @@ use open qw(:std :utf8);
 use utf8;
 use strict;
 our ($LOG, $LOAD, $opt_f, $opt_u, $opt_D, $opt_I, $opt_O);
-our (%DEROG, %OFFENSIVE, %VULGAR, %SENSITIVE, %CLASSES, %DEF);
+our (%DEROG, %OFFENSIVE, %VULGAR, %SENSITIVE, %CLASSES, %DEF, %SENS, %TYPES);
 #
 # Input: File that has been split into the tags that are to be checked - as with the Spell Check input
 # Data file: -f sensitiityInfo.xml - data extracted from ODE in tagged format
@@ -43,7 +43,14 @@ sub main
 	binmode DB::OUT,":utf8";
     }
     &load_file($opt_f);    
-    printf("\#Word\tContext\tH\tTag\tEntryId\tDerogatory\tOffensive\tVulgar\tSensitivity Classes\tDef\n"); 
+    my $hdr = sprintf("Word\tContext\tH\tTag\t");
+    foreach my $type (sort keys %TYPES) 
+    {
+	$hdr .= sprintf("%s\t",  $type); 
+    }
+    $hdr .= sprintf("Def\tEntryId"); 
+    print $hdr;
+    #    printf("\#Word\tContext\tH\tTag\tEntryId\tDerogatory\tOffensive\tVulgar\tSensitivity Classes\tDef\n"); 
   line:    
     while (<>){
 	chomp;       # strip record separator
@@ -88,8 +95,20 @@ sub sensitivity_check
 		    $cp =~ s| *$||;
 		    my $cp2 = $cp;
 		    $cp2 =~ s|</?red>||gi;
-		
+		    
 		    my $def = $DEF{$wd};
+		    my $wdsens = "";		    
+		    foreach my $type (sort keys %TYPES) 
+		    {
+			my $wd_type = sprintf("%s\t%s", $wd, $type); 
+			my $sens = $SENS{$wd_type};
+			unless ($sens =~ m|^ *$|)
+			{
+#			    printf(STDERR "%s\n", $sens); 
+			}
+			$wdsens .= sprintf("%s\t",  $sens); 
+		    }
+		    # Should have now built up a tab delimited set of classes for the word for each type in wdsens
 		    my $classes = $CLASSES{$wd};
 		    my $derog = $DEROG{$wd};
 		    my $offensive = $OFFENSIVE{$wd};
@@ -97,7 +116,8 @@ sub sensitivity_check
 		    $def =~ s|; *$||;
 		    $classes =~ s|; *$||;
 		    my $info = sprintf("$derog\t$offensive\t$vulgar\t$classes\t$def"); 
-		    printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $wd, $cp, $h, $tag, $EntryId, $info);
+		    $wdsens =~ s|\t$||;
+		    printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $wd, $cp, $h, $tag, $wdsens, $def,  $EntryId);
 		}
 	    }
 	}
@@ -122,18 +142,38 @@ sub load_file
 	chomp;
 	s|| |g;
 	# my ($eid, $info) = split(/\t/);
-	my $wd = restructure::get_tag_contents($_, "hw");	
-	my $def = restructure::get_tag_contents($_, "def");
-	my $derog = restructure::get_tag_contents($_, "derogatory");
-	my $classes = restructure::get_tag_contents($_, "sensitivity_classes");
-	my $offens = restructure::get_tag_contents($_, "offensive");
-	my $vulgar = restructure::get_tag_contents($_, "vulgar");
-	#
-	$DEROG{$wd} = "y" if ($derog =~ m|y|i);
-	$OFFENSIVE{$wd} = "y" if ($offens =~ m|y|i);
-	$VULGAR{$wd} = "y" if ($vulgar =~ m|y|i);
+	my $wd = restructure::get_tag_contents($_, "wd");	
+	my $def = restructure::get_tag_contents($_, "DEF");
 	$SENSITIVE{$wd} = 1;
-	$CLASSES{$wd} = sprintf("%s%s; ", $CLASSES{$wd}, $classes);
+	$_ =~ s|(<sens[ >].*?</sens>)|&split;&fk;$1&split;|g;
+	my @BITS = split(/&split;/, $_);
+	my $res = "";
+      floop2:
+	foreach my $bit (@BITS){
+	    if ($bit =~ s|&fk;||gi){
+		my $type = restructure::get_tag_attval($bit, "sens", "type");
+		unless ($type =~ m|^ *$|)
+		{
+		    my $contents = restructure::get_tag_contents($bit, "sens"); 
+		    my $wd_type = sprintf("%s\t%s", $wd, $type);
+		    $SENS{$wd_type} = $contents;
+		    $TYPES{$type}++;
+		}
+	    }
+      }
+	if (0)
+      {
+	  my $derog = restructure::get_tag_contents($_, "derogatory");
+	  my $classes = restructure::get_tag_contents($_, "sensitivity_classes");
+	  my $offens = restructure::get_tag_contents($_, "offensive");
+	  my $vulgar = restructure::get_tag_contents($_, "vulgar");
+	  #
+	  $DEROG{$wd} = "y" if ($derog =~ m|y|i);
+	  $OFFENSIVE{$wd} = "y" if ($offens =~ m|y|i);
+	  $VULGAR{$wd} = "y" if ($vulgar =~ m|y|i);
+	  $SENSITIVE{$wd} = 1;
+	  $CLASSES{$wd} = sprintf("%s%s; ", $CLASSES{$wd}, $classes);
+      }
 	$DEF{$wd} = sprintf("%s%s; ", $DEF{$wd}, $def);
     }
     close(in_fp);
