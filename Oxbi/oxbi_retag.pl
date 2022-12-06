@@ -40,6 +40,7 @@ sub main
 	chomp;       # strip record separator
 	s|||g;
 	if ($opt_I){printf(bugin_fp "%s\n", $_);}
+#	$_ = restructure::tag_delete($_, "xrg"); 
 	for (my $i=0; $i < 5; $i++)
 	{
 	    $_ = restructure::move_back_out_of($_, "trg", "lev");
@@ -47,6 +48,7 @@ sub main
 	}
 	$_ = restructure::rename_tag_in_tag($_, "exg", "lev", "levx");
 	$_ = restructure::rename_tag_in_tag($_, "trg", "lev", "levt");
+
 	# $e = restructure::rename_tag_in_tag($e, $container, $oldtag, $newtag);
 	s|£|&\#x00A3;|g;
 	s|<semb|£<semb|g;
@@ -82,6 +84,8 @@ sub main
 	    s| *(<label [^>]*>.*?</label>) *| (\1) |gi;
 	    s| *(<lev[^>]*>.*?</lev[^>]*>) *| (\1) |gi;
 	    s|</tr><tr [^>]*>|, |gi;
+	    s| *(<sp)| \1|gi;
+	    s| *(</sp>) *|\1 |gi;
 	    $_ = &do_xrefs($_);
 	    # Rename levs in examples
 	    $_ = restructure::rename_tag_in_tag($_, "lev", "x-gs", "txlev");
@@ -188,7 +192,7 @@ sub do_xrefs
 	    $bit = restructure::lose_tag($bit, "xrg"); # lose the tags but not the contents	    
 	    $bit =~ s| *(<xr-gs[^>]*>) *| ➔ \1|gi;
 	    $bit = restructure::lose_tag($bit, "xr"); # lose the tags but not the contents
-	    $bit = restructure::lose_tag($bit, "xr-gs"); # lose the tags but not the contents	    
+#	    $bit = restructure::lose_tag($bit, "xr-gs"); # lose the tags but not the contents	    
 	}
 	$res .= $bit;
     }    
