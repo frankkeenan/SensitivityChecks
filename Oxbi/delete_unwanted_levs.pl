@@ -59,19 +59,75 @@ sub main
 	}
 	$_ = &delete_unwanted_levs($_);
 	$_ = restructure::tag_delete($_, "nlp");
-#	$_ = restructure::tag_delete($_, "xrg");
+	#	$_ = restructure::tag_delete($_, "xrg");
 	$_ = restructure::tag_delete($_, "pr");
 	$_ = restructure::tag_delete($_, "infg");
+	$_ = restructure::tag_delete($_, "gr");
 	$_ = &add_sense_numbers($_);
-	s| *<ind[^>]*>(.*?)</ind> *| (\1) |gi;
+#	s| *<ind[^>]*>(.*?)</ind> *| (\1) |gi;
 	s| e:[^ =]*=\".*?\"||gi;
 	if (m|<lev|)
 	{
+	    if (m|<rf|)
+	    {
+		$_ = &replace_rfs($_);
+	    }
+	    if (m| suppressed=\"true\"|)
+	    {
+		$_ = &lose_suppressed($_);
+	    }
 	    print $_;
 	}
 	if ($opt_O){printf(bugout_fp "%s\n", $_);}
     }
     &close_debug_files;
+}
+
+sub lose_suppressed
+{
+    my($e) = @_;
+    my($res, $eid);	
+    while ($e =~ m|(<[^>]* suppressed=\"true\".*?>)|)
+    {
+	my $tagname = restructure::get_tagname($1);
+	$e = &del_sup_tag($e, $tagname);
+    }
+    return $e;
+}
+
+sub del_sup_tag
+{
+    my($e, $tagname) = @_;
+    my($res, $eid);	
+    my($bit, $res);
+    my(@BITS);
+    $e =~ s|(<$tagname[ >].*?</$tagname>)|&split;&fk;$1&split;|gi;
+    @BITS = split(/&split;/, $e);
+    $res = "";
+    foreach my $bit (@BITS){
+	if ($bit =~ s|&fk;||gi){
+	    my $sup = restructure::get_tag_attval($bit, $tagname, "suppressed");
+	    if ($sup =~ m|true|i)
+	    {
+		$bit = "";
+	    }
+	}
+	$res .= $bit;
+    }    
+    return $res;
+}
+
+
+
+sub replace_rfs
+{
+    my($e) = @_;
+    my($res, $eid);	
+    my $hw = restructure::get_tag_contents($e, "hw");
+    $e =~ s|(<rf)([^a-z])|\1 \2|g;
+    $e =~ s|<rf [^/]*/>|<rf ></rf>|gi;
+    $e =~ s|<rf [^>]*> *</rf>|$hw|g;
+    return $e;
 }
 
 sub add_sense_numbers
@@ -107,6 +163,7 @@ sub add_semb_numbers
     my($e) = @_;
     my($res, $eid);
     my $ct;
+    return $e unless ($e =~ m|</semb>.*</semb>|);
     $e =~ s|(<semb[ >].*?</semb>)|&split;&fk;$1&split;|gi;
     my @BITS = split(/&split;/, $e);
     my $res = "";
