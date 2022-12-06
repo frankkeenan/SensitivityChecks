@@ -37,20 +37,6 @@ sub main
     $worksheet = $workbook->add_worksheet();
 
     &create_format_objects;
-
-    # Format the columns
-    ##    $worksheet->set_column( 'A:A', 45, $unlocked );
-    ##    $worksheet->set_column( 'C:D', 45, $unlocked );
-    # Protect the worksheet
-    ##    $worksheet->protect({autofilter => 1});
-    $worksheet->set_column( 'A:A', 20 );   # Columns F-H width set to 30
-    $worksheet->set_column( 'B:B', 50 );   # Columns F-H width set to 30
-    $worksheet->set_column( 'C:C', 20 );   # Columns F-H width set to 30
-    $worksheet->set_column( 'D:D', 10, $centered_fmt );   # Columns F-H width set to 30
-    $worksheet->set_column( 'E:F', 20, undef, 1 );   # Columns E width set to 20 and hidden
-    $worksheet->set_column( 'G:I', 10, $centered_fmt );   # Columns F-H width set to 30
-    $worksheet->set_column( 'J:J', 50 );   # Columns F-H width set to 30
-    $worksheet->set_column( 'K:K', 50 );   # Columns F-H width set to 30
     $row = 0;
   line:    
     while (<>){
@@ -61,36 +47,42 @@ sub main
 	    # First line has the header
 	    s|^ *\# *||;
 	    @HDR = split(/\t/, $_);
-	    for ($i=0; $i<13; $i++)
-	    {
-		$worksheet->write_string($row, $i, $HDR[$i], $header_fmt);
-	    }
+	    $worksheet->write_row( $row, 0, \@HDR);
 	    $row++;
 	    next line;
 	}
 	if ($opt_I){printf(bugin_fp "%s\n", $_);}
-	@array = split(/\t/, $_);
 	@FLDS = split(/\t/);
 	$wd = $FLDS[0];
 	$context = $FLDS[1];
 	$hw = $FLDS[2];
-	$lexid = $FLDS[1];
-	($wd, $context, $hw, $tag, $lexid, $context_cp, $original_text, $pos, $def, $derogatory, $offensive, $vulgar, $sensitivity_classes) = split(/\t/);
-	$worksheet->write_string($row, 0, $wd);
+	#	($wd, $context, $hw, $tag, $lexid, $context_cp, $original_text, $pos, $def, $derogatory, $offensive, $vulgar, $sensitivity_classes) = split(/\t/);
+	$worksheet->write_row( $row, 0, \@FLDS);	
 	#	$worksheet->write_string($row, 1, $context);       	
 	if ($context =~ m|<red|)
 	{
 	    &write_context($context, $row);
 	}
-	for ($i=2; $i<13; $i++)
-	{
-	    $worksheet->write_string($row, $i, $FLDS[$i]);
-	}
 	$row++;
 	if ($opt_O){printf(bugout_fp "%s\n", $_);}
   }
-    $worksheet->autofilter( 'A1:K1' );
+    #    $worksheet->autofilter( 'A1:W99999' );
     $worksheet->freeze_panes( 1, 0 );    # Freeze the first row
+    # Format the columns
+    ##    $worksheet->set_column( 'A:A', 45, $unlocked );
+    ##    $worksheet->set_column( 'C:D', 45, $unlocked );
+    # Protect the worksheet
+    ##    $worksheet->protect({autofilter => 1});
+    if (0)
+    {
+	$worksheet->set_column( 'A:A', 20 );   # Columns F-H width set to 30
+	$worksheet->set_column( 'B:B', 50 );   # Columns F-H width set to 30
+	$worksheet->set_column( 'C:C', 20 );   # Columns F-H width set to 30
+	$worksheet->set_column( 'D:D', 10, $centered_fmt );   # Columns F-H width set to 30
+	$worksheet->set_column( 'E:E', 10, $hidden_fmt );   # Columns F-H width set to 30
+	$worksheet->set_column( 'F:V', 10, $centered_fmt );   # Columns F-H width set to 30
+	$worksheet->set_column( 'W:W', 50 );   # Columns F-H width set to 30
+    }
     $workbook->close();
     exit;
     &close_debug_files;
