@@ -56,6 +56,7 @@ sub main
 	    $htag = "hw";
 	    $etag = "e";
 	}
+	s|[‧ˌˈ]||gi;
 	my $hw = restructure::get_tag_contents($_, $htag); 
 	my $lexid = &get_tag_attval($_, $etag, "lexid");
 	my $e_eid = restructure::get_tag_attval($_, $etag, "e:id"); 
