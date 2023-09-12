@@ -43,13 +43,16 @@ sub main
 	binmode DB::OUT,":utf8";
     }
     &load_file($opt_f);    
-    my $hdr = sprintf("Word\tContext\tH\tTag\tMore context\tEntryId\teid\tDBID\t");
-    foreach my $type (sort keys %TYPES) 
+    if (0)
     {
-	$hdr .= sprintf("%s\t",  $type); 
+	my $hdr = sprintf("Word\tContext\tH\tTag\tMore context\tEntryId\teid\tDBID\t");
+	foreach my $type (sort keys %TYPES) 
+	{
+	    $hdr .= sprintf("%s\t",  $type); 
+	}
+	$hdr .= sprintf("Def\tPossible Sensitivity Class"); 
+	print $hdr;
     }
-    $hdr .= sprintf("Def\tPossible Sensitivity Class"); 
-    print $hdr;
   line:    
     while (<>){
 	chomp;       # strip record separator
@@ -83,20 +86,26 @@ sub sensitivity_check
   floop:
     foreach my $wd (@WDS){
 	if ($wd =~ m|^[A-Za-z0-9_\-\'\N{U+370}-\N{U+3FF}\N{U+C0}-\N{U+CFF}]|){
-	    $wd =~ tr|A-Z|a-z|;
-	    if ($SENSITIVE{$wd})
+	    my $lcwd = $wd;
+	    $lcwd =~ tr|A-Z|a-z|;
+	    if ($SENSITIVE{$lcwd})
 	    {
-		unless ($USED{$wd}++)
+		unless ($USED{$lcwd}++)
 		{
 		    my $cp = $context;
 		    $cp =~ s|^ *| |g;
 		    $cp =~ s| *$| |g;
 		    $cp =~ s|([^A-Za-z0-9_\-\'\N{U+370}-\N{U+3FF}\N{U+C0}-\N{U+CFF}])$wd([^A-Za-z0-9_\-\'\N{U+370}-\N{U+3FF}\N{U+C0}-\N{U+CFF}])|\1<red>$wd</red>\2|g;
+		    unless ($cp =~ m|<red|)
+		    {
+			$cp =~ s|([^A-Za-z0-9_\-\'\N{U+370}-\N{U+3FF}\N{U+C0}-\N{U+CFF}])($wd)([^A-Za-z0-9_\-\'\N{U+370}-\N{U+3FF}\N{U+C0}-\N{U+CFF}])|\1<red>$wd/red>\3|gi;
+		    }
 		    $cp =~ s|^ *||;
 		    $cp =~ s| *$||;
 		    my $cp2 = $cp;
 		    $cp2 =~ s|</?red>||gi;
-		    
+		    # Just deal with lower case
+		    $wd = $lcwd;
 		    my $def = $DEF{$wd};
 		    my $wdsens = "";		    
 		    foreach my $type (sort keys %TYPES) 
@@ -107,7 +116,10 @@ sub sensitivity_check
 			{
 			    #			    printf(STDERR "%s\n", $sens); 
 			}
-			$wdsens .= sprintf("%s\t",  $sens); 
+			unless ($sens =~ m|^ *$|)
+			{
+			    $wdsens .= sprintf("<$type>%s</$type>",  $sens);
+			}
 		    }
 		    # Should have now built up a tab delimited set of classes for the word for each type in wdsens
 		    my $classes = $CLASSES{$wd};
@@ -118,7 +130,8 @@ sub sensitivity_check
 		    $classes =~ s|; *$||;
 		    my $info = sprintf("$derog\t$offensive\t$vulgar\t$classes\t$def"); 
 		    $wdsens =~ s|\t$||;
-		    my $row = join("\t", $wd, $cp, $h, $tag, "", $EntryId, $eid, $dbid, $wdsens, $def);
+		    my $row = sprintf("<wd>$wd</wd><cp>$cp</cp><h>$h</h><tag>$tag</tag><EntryId>$EntryId</EntryId><eid>$eid</eid><dbid>$dbid</dbid><WDSENS>$wdsens</WDSENS><def>$def</def>"); 
+#		    my $row = join("\t", $wd, $cp, $h, $tag, "", $EntryId, $eid, $dbid, $wdsens, $def);
 		    #		    printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $wd, $cp, $h, $tag, $wdsens, $def,  $EntryId, $dbId);
 		    print $row;
 		}
