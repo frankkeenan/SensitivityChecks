@@ -104,6 +104,7 @@ sub sensitivity_check
 		    $cp =~ s| *$||;
 		    my $cp2 = $cp;
 		    $cp2 =~ s|</?red>||gi;
+		    #
 		    # Just deal with lower case
 		    $wd = $lcwd;
 		    my $def = $DEF{$wd};
