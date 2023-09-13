@@ -43,16 +43,6 @@ sub main
 	binmode DB::OUT,":utf8";
     }
     &load_file($opt_f);    
-    if (0)
-    {
-	my $hdr = sprintf("Word\tContext\tH\tTag\tMore context\tEntryId\teid\tDBID\t");
-	foreach my $type (sort keys %TYPES) 
-	{
-	    $hdr .= sprintf("%s\t",  $type); 
-	}
-	$hdr .= sprintf("Def\tPossible Sensitivity Class"); 
-	print $hdr;
-    }
   line:    
     while (<>){
 	chomp;       # strip record separator
