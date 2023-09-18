@@ -4,7 +4,7 @@ use autodie qw(:all);
 use open qw(:std :utf8);
 use utf8;
 use strict;
-our ($LOG, $LOAD, $opt_f, $opt_u, $opt_D, $opt_I, $opt_O, %W, %USED, %F, %INFO);
+our ($LOG, $LOAD, $opt_f, $opt_u, $opt_D, $opt_I, $opt_O, %W, %USED, %F, %INFO, %EID_CT);
 if (1)
 {
     require "/NEWdata/dicts/generic/progs/utils.pl";
@@ -54,13 +54,25 @@ sub main
         # $_ = restructure::delabel($_);	
 	# $tagname = restructure::get_tagname($bit);
 	my($wd, $cp, $h, $h_trans, $tag, $more_context, $derog, $offensive, $vulgar, $classes, $def, $EntryId, $eid, $dbid, $wdsens) = split(/\t/);
+	my $derog_offens_vulgar = "";
+	my $eid_ct;
 	if ($hdr)
 	{
 	    $hdr = 0;
+	    $derog_offens_vulgar = "Derogatory OR Offensive OR Vulgar";
+	    $eid_ct = "Times seen";
 	} else{
 	    $more_context = $INFO{$EntryId};
+	    if (($derog =~ m|^ *$|) && ($offensive =~ m|^ *$|) && ($vulgar =~ m|^ *$|))
+	    {
+		$derog_offens_vulgar = "";
+	    } else {
+		$derog_offens_vulgar = "Yes";
+	    }
+	    $eid_ct = ++$EID_CT{$eid};
 	}
-	my $e = join("\t", $wd, $cp, $h, $h_trans, $tag, $more_context, $derog, $offensive, $vulgar, $classes, $def, $EntryId, $eid, $dbid, $wdsens);
+
+	my $e = join("\t", $wd, $cp, "", "", $h, $h_trans, $tag, $more_context, $derog_offens_vulgar, $derog, $offensive, $vulgar, $classes, $def, $EntryId, $eid, $dbid, $wdsens, $eid_ct);
 	print $e;
 	if ($opt_O){printf(bugout_fp "%s\n", $_);}
     }
