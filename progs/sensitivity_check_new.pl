@@ -40,6 +40,7 @@ sub main
     getopts('uf:L:IODo:');
     &usage if ($opt_u);
     my($e, $res, $bit, $tag);
+    my %WD_USED;
     #   $opt_L = ""; # name of file for the log_fp output to go to
     use open qw(:utf8 :std);
     unless ($opt_f)
@@ -51,36 +52,75 @@ sub main
 	binmode DB::OUT,":utf8";
     }
     &load_file($opt_f);    
-    my $hdr = join("\t", "Word", "Context", "HW", "HW_Trans", "tag", "More Context", "Derogatory", "Offensive", "Vulgar", "Sensitivity classes", "def", "EntryId", "id", "dbid", "wdsens");
+    my $hdr = join("\t", "Word", "HW", "Context", "More Context", "tag", "Derogatory, Offensive or Vulgar", "Derogatory", "Offensive", "Vulgar", "Sensitivity classes", "def", "lexid", "EntryId", "e:id", "dbid", "word score", "total score", "Times seen");
     printf("%s\n", $hdr); 
   line:    
     while (<>){
 	chomp;       # strip record separator
 	s|||g;
-	$_ = &join_cpds($_);
 	my ($maxwd, $maxscore, $totscore);
-	my($h, $context, $tag, $EntryId, $eid, $dbid) = split(/\t/);
-	($context, $maxwd, $maxscore, $totscore) = &sensitivity_check_new($context, $tag, $h, $EntryId, $eid, $dbid);
-	#	&sensitivity_check($context, $tag, $h, $EntryId, $eid, $dbid);
+	my @FLDS = split(/\t/);
+	my($hw, $context, $tag, $lexid, $EntryId, $eid, $dbid) = split(/\t/);
+	$context = &join_cpds($context);
+	($context, $maxwd, $maxscore, $totscore) = &sensitivity_check_new($context);
 	next line unless ($context =~ m| score=|);
 	my $info = &get_sensitivity_info($maxwd);	
-	&print_max_row($maxwd, $h, $context, $tag, $info, $EntryId, $eid, $dbid, $maxscore, $totscore); ## TO DO
-	#	print $context;
+	my $def = $DEF{$maxwd};
+	my $ct = 1;
+	undef %WD_USED;
+	&print_row($maxwd, $hw, $context, $tag, $info, $def, $lexid, $EntryId, $eid, $dbid, $maxscore, $totscore, $ct++); ## TO DO
+	$WD_USED{$maxwd} = 1;
+	my $cp = $context;
+	$cp =~ s|(<wd[ >].*?</wd>)|&split;&fk;$1&split;|gi;
+	my @BITS = split(/&split;/, $cp);
+	foreach my $bit (@BITS){
+	    if ($bit =~ s|&fk;||gi){
+		my $wd = restructure::get_tag_contents($bit, "wd"); 
+		unless ($WD_USED{$wd}++)
+		{
+		    my $def = $DEF{$wd};
+		    my $wd_context = &get_wd_context($context, $wd);
+		    my $wdscore = $SCORE{$wd};
+		    my $info = &get_sensitivity_info($wd);	
+		    &print_row($wd, $hw, $wd_context, $tag, $info, $def, $lexid, $EntryId, $eid, $dbid, $wdscore, $totscore, $ct++); ## TO DO
+		}
+	    }
+	    $res .= $bit;
+	}	
   }
 }
 
-sub print_max_row
+sub print_row
 {
-    my($maxwd, $h, $context, $tag, $info, $EntryId, $eid, $dbid, $maxscore, $totscore) = @_;
-    my($res, $eid);    
-    my $e = join("\t", $maxwd, $h, $context, $tag, $info, $EntryId, $eid, $dbid, $maxscore, $totscore);
-    printf("%s\n, $e");     
+    my($wd, $h, $context, $tag, $info, $def, $lexid, $EntryId, $eid, $dbid, $maxscore, $totscore, $ct) = @_;
+    my $e = join("\t", $wd, $h, $context, "", $tag, $info, $def, $lexid, $EntryId, $eid, $dbid, $maxscore, $totscore, $ct);
+    printf("%s\n", $e);     
+}
+
+sub get_wd_context
+{
+    my($e, $twd) = @_;
+    my($res);	
+    $e =~ s|(<wd[ >].*?</wd>)|&split;&fk;$1&split;|gi;
+    my @BITS = split(/&split;/, $e);
+    my $res = "";
+    foreach my $bit (@BITS){
+	if ($bit =~ s|&fk;||gi){
+	    my $wd = restructure::get_tag_contents($bit, "wd");
+	    unless ($wd eq $twd)
+	    {
+		$bit = restructure::lose_tag($bit, "wd"); # lose the tags but not the contents		
+	    }
+	}
+	$res .= $bit;
+    }    
+    return $res;
 }
 
 sub get_sensitivity_info
 {
     my($wd) = @_;
-    my($res, $eid);	
+    my($res);	
     my $wdsens = "";		    
     foreach my $type (sort keys %TYPES) 
     {
@@ -101,7 +141,14 @@ sub get_sensitivity_info
     my $offensive = $OFFENSIVE{$wd};
     my $vulgar = $VULGAR{$wd};
     $classes =~ s|; *$||;
-    my $info = sprintf("$derog\t$offensive\t$vulgar\t$classes"); 
+    my $derog_off_vulgar;
+    if (($derog =~ m|^ *$|) && ($offensive =~ m|^ *$|) && ($vulgar =~ m|^ *$|))
+    {
+	$derog_off_vulgar = "";
+    } else {
+	$derog_off_vulgar = "yes";
+    }
+    my $info = sprintf("$derog_off_vulgar\t$derog\t$offensive\t$vulgar\t$classes"); 
     $wdsens =~ s|\t$||;
     return $info;
 }
@@ -110,11 +157,11 @@ sub get_sensitivity_info
 
 sub sensitivity_check_new
 {
-    my($e, $tag, $h, $EntryId, $eid, $dbid) = @_;
+    my($e) = @_;
     my($maxwd, $maxscore, $totscore);	
     $e = &tokenise($e);
     ($e, $maxwd, $maxscore, $totscore) = &add_sensitivity_scores($e);
-    return ($e, $maxwd);
+    return ($e, $maxwd, $maxscore, $totscore);
 }
 
 sub add_sensitivity_scores
@@ -176,7 +223,7 @@ sub tokenise
 sub mark_max_scoring
 {
     my($e) = @_;
-    my($res, $maxscore, $totscore, $maxwd);	
+    my($res, $maxscore, $totscore, $maxwd, $done);	
     my ($maxscore, $totscore) = &get_maxscore($e);
     $maxwd = "zyzyz"; # just garbage that won't be matched - to allow for marking all occurrences of max word in sentence
     $e =~ s|(<wd[ >].*?</wd>)|&split;&fk;$1&split;|gi;
@@ -188,9 +235,11 @@ sub mark_max_scoring
 	    my $wd = restructure::get_tag_contents($bit, "wd"); 
 	    if (($score == $maxscore) || ($wd eq $maxwd))
 	    {
-		$maxscore = 9999; # only want the first word to be max
 		$maxwd = $wd;
-		$bit = restructure::set_tag_attval($bit, "wd", "max", "y"); 
+		unless ($done++)
+		{
+		    $bit = restructure::set_tag_attval($bit, "wd", "max", "y");
+		}
 	    }
 	}
 	$res .= $bit;
@@ -225,6 +274,25 @@ sub join_cpds
     my($e) = @_;
     my($res, $eid);	
     $e =~ s|£| |g;
+    $e = sprintf("£%s£", $e); 
+    foreach my $cpd (sort keys %CPDS)
+    {
+	if ($e =~ m|[^a-z]$cpd[^a-z]|i)
+	{
+	    my $joined_cpd = $cpd;
+	    $joined_cpd =~ s| +|_|g;
+	    $e =~ s|([^a-z])$cpd([^a-z])|\1$joined_cpd\2|gi;
+	}
+    }
+    $e =~ s|£||g;
+    return $e;
+}
+
+sub join_cpds_old
+{
+    my($e) = @_;
+    my($res, $eid);	
+    $e =~ s|£| |g;
     my($h, $context, $tag, $EntryId, $eid, $dbid) = split(/\t/);
     $context = sprintf("£%s£", $context); 
     foreach my $cpd (sort keys %CPDS)
@@ -237,9 +305,10 @@ sub join_cpds
 	}
     }
     $context =~ s|£||g;
-    $res = sprintf("%s\t%s\t%s\t%s\t%s\t%s", $h, $context, $tag, $EntryId, $eid, $dbid); 
+    $res = join("\t", $h, $context, $tag, $EntryId, $eid, $dbid); 
     return $res;
 }
+
 
 sub usage
 {
@@ -263,8 +332,12 @@ sub load_file
 	my $def = restructure::get_tag_contents($_, "DEF");
 	if ($wd =~ m| |)
 	{
-	    $CPDS{$wd} = 1;
-	    $wd =~ s| +|_|g;
+	    # Only mark the compounds that have degree added as cpds - otherwise get too many and it's v slow
+	    if (m| degree=|)
+	    {
+		$CPDS{$wd} = 1;
+		$wd =~ s| +|_|g;
+	    }
 	}
 	$SENSITIVE{$wd} = 1;
 	my ($wdfreq, $wddegree);
@@ -327,6 +400,9 @@ sub load_file
 		my $fscore = $FSCORE{$freq};
 		my $dscore = $DSCORE{$degree};
 		my $score = $fscore + $dscore;
+		$score++ if ($OFFENSIVE{$wd});
+		$score++ if ($DEROG{$wd});
+		$score++ if ($VULGAR{$wd});
 		if ($score > $SCORE{$wd})
 		{
 		    $SCORE{$wd} = $score;

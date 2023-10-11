@@ -55,15 +55,11 @@ sub main
 	chomp;       # strip record separator
 	s|||g;
 	if ($opt_I){printf(bugin_fp "%s\n", $_);}
-#	my $coloured = eval &colorize($_);
-#	$coloured = 'Frank a word that you', $red_fmt, "use", 'before the when', $green_fmt, "it", ' is what ', $green_fmt, "person", 
-
-	my $coloured =  &colorize($_);
-	
-	my $comm = sprintf("\$worksheet->write_rich_string(%d, 1, %s)", $row, $coloured); 
+	# set the max attribute
+	$_ = &mark_highest_scoring($_);
+	my $coloured_max =  &colorize_max($_);	
+	my $comm = sprintf("\$worksheet->write_rich_string(%d, 1, %s)", $row, $coloured_max); 
 	eval $comm;
-	print $comm;
-#	$worksheet->write_rich_string($row, 1,  $coloured);
 	if (0)
 	{
 	    my ($wd, $context, $h, $h_trans, $tag, $more_context, $derog, $offensive, $vulgar, $classes, $def, $EntryId, $eid, $dbid, $wdsens) = split(/\t/);	
@@ -120,6 +116,42 @@ sub main
     $workbook->close();
     exit;
     &close_debug_files;
+}
+
+sub mark_highest_scoring
+{
+    my($e) = @_;
+    my($res, $max);	
+    my $cp = $e;
+    $e =~ s|(<wd[ >].*?</wd>)|&split;&fk;$1&split;|gi;
+    my @BITS = split(/&split;/, $e);
+    my $res = "";
+    foreach my $bit (@BITS){
+	if ($bit =~ s|&fk;||gi){
+	    my $score = restructure::get_tag_attval($bit, "wd", "score"); 
+	    if ($score > $max)
+	    {
+		$max = $score;
+	    }
+	}
+	$res .= $bit;
+    }
+    $e = $cp;
+    $e =~ s|(<wd[ >].*?</wd>)|&split;&fk;$1&split;|gi;
+    my @BITS = split(/&split;/, $e);
+    my $res = "";
+    foreach my $bit (@BITS){
+	if ($bit =~ s|&fk;||gi){
+	    my $score = restructure::get_tag_attval($bit, "wd", "score"); 
+	    if ($score == $max)
+	    {
+		$max = 9999;
+		$bit = restructure::set_tag_attval($bit, "wd", "max", "y"); 
+	    }
+	}
+	$res .= $bit;
+    }    
+    return $res;
 }
 
 sub write_context
@@ -208,6 +240,40 @@ sub load_file
     close(in_fp);
 } 
 
+sub colorize_max
+{
+    my($e) = @_;
+    my($res, $eid);	
+    $res = "";
+    $e = sprintf(" %s ", $e); 
+    $e =~ s|(<wd[ >].*?</wd>)|&split;&fk;$1&split;|gi;
+    my @BITS = split(/&split;/, $e);
+    my $res = "";
+    foreach my $bit (@BITS){
+	if ($bit =~ s|&fk;||gi){
+	    my $max = restructure::get_tag_attval($bit, "wd", "max"); 
+	    my $bit = restructure::get_tag_contents($bit, "wd"); 
+	    $bit =~ s|\'|&apos;|gi;
+	    $bit =~ s|\"|&dquo;|gi;
+	    if ($max =~ m|y|)
+	    {
+		$res .= sprintf("\$red_fmt, \'%s\', ", $bit);
+	    } else {
+		$res .= sprintf("\$green_fmt, \'%s\', ", $bit);
+	    }
+	}
+	else {
+	    $bit =~ s|\'|&apos;|gi;
+	    $bit =~ s|\"|&dquo;|gi;
+	    $res .= sprintf("\'%s\', ", $bit);
+	}
+    }    
+    $res =~ s|, *$||;    
+    $res =~ s|&apos;|\\'|g;
+    $res =~ s|&dquo;|\"|g;
+    return $res;
+}
+
 sub colorize
 {
     my($e) = @_;
@@ -242,26 +308,6 @@ sub colorize
     return $res;
 }
 
-
-
-sub get_rich_string_excel_unhappy
-{
-    my($e) = @_;
-    my($res, $eid);	
-    $e =~ s|(<red>.*?</red>)|&split;&fk;$1&split;|gi;
-    my @BITS = split(/&split;/, $e);
-    my $res = "";
-    foreach my $bit (@BITS){
-	if ($bit =~ s|&fk;||gi){
-	    my $bit = restructure::get_tag_contents($bit, "red"); 
-	    $res = sprintf("%s\$red_fmt, \"%s\", ", $res, $bit); 
-	} else {
-	    $res = sprintf("%s\$black_fmt, \"%s\", ", $res, $bit); 
-	}
-    }	
-    $res =~ s|, *$||;
-    return $res;
-}
 
 sub create_format_objects
 {

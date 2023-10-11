@@ -63,9 +63,12 @@ sub main
 	}
 	s|[‧ˌˈ]||gi;
 	my $hw = restructure::get_tag_contents($_, $htag); 
-	my $lexid = &get_tag_attval($_, $etag, "lexid");
+	if (m| lexid=|)
+	{
+	    $_ = &inherit_lexids($_);
+	}
 	my $dbid = &get_tag_attval($_, $etag, "e:dbid");
-	my $e_eid = restructure::get_tag_attval($_, $etag, "eid"); 
+	my $e_eid = restructure::get_tag_attval($_, $etag, "e:id"); 
 	$_ = restructure::delabel($_);	
 	s|<rf .*?</rf>|$hw|gi;
 	if (m| suppressed=\"true\"|)
@@ -90,6 +93,34 @@ sub main
     &close_debug_files;
 }
 
+sub inherit_lexids
+{
+    my($e) = @_;
+    my($res, $prev_lexid);	
+    if (m|^.*? lexid=\"(.*?)\"|)
+    {
+	$prev_lexid = $1;
+    }
+    $e =~ s|(<[a-zA-Z].*?>)|&split;&fk;$1&split;|gi;
+    my @BITS = split(/&split;/, $e);
+    my $res = "";
+    foreach my $bit (@BITS){
+	if ($bit =~ s|&fk;||gi){
+	    my $tagname = restructure::get_tagname($bit);    
+	    my $lexid = restructure::get_tag_attval($bit, $tagname, "lexid");
+	    if ($lexid =~ m|^ *$|)
+	    {
+		$bit = restructure::set_tag_attval($bit, $tagname, "lexid", $prev_lexid); 
+	    } else {
+		$prev_lexid = $lexid;
+	    }	    
+	}
+	$res .= $bit;
+    }    
+    return $res;
+}
+
+
 sub print_tag
 {
     my($e, $tag, $hw, $e_eid, $dbid) = @_;
@@ -101,11 +132,14 @@ sub print_tag
     $res = "";
     foreach my $bit (@BITS){
 	if ($bit =~ s|&fk;||gi){
-	    my $eid = restructure::get_tag_attval($bit, $tag, "eid"); 
+	    my $eid = restructure::get_tag_attval($bit, $tag, "e:id");
+	    my $lexid = restructure::get_tag_attval($bit, $tag, "lexid"); 
 	    my $content = restructure::get_tag_contents($bit, $tag); 
 	    $content =~ s|<.*?>| |g;
 	    $content =~ s| +| |g;
-	    printf("%s\t%s\t%s\t%s\t%s\t%s\n", $hw, $content, $tag, $e_eid, $eid, $dbid); 
+	    my $row = join("\t", $hw, $content, $tag, $lexid, $e_eid, $eid, $dbid);
+	    print $row;
+#	    printf("%s\t%s\t%s\t%s\t%s\t%s\n", $hw, $content, $tag, $e_eid, $eid, $dbid); 
 	    $bit = "";
 	}
 	$res .= $bit;

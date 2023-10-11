@@ -7317,13 +7317,13 @@
 <e><wd>fricken</wd><pos>adjective</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>used for emphasis or to express annoyance</def></e>
 <e><wd>fricking</wd><pos>adjective</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>used for emphasis or to express annoyance</def></e>
 <e><wd>fried</wd><pos>verb</pos><SENS><sens type="substance">drugs</sens></SENS><def>under influence of alcohol or drugs</def></e>
-<e><wd>friend</wd><pos>noun</pos><SENS><sens type="religion">christian</sens><sens type="sex">sexuality</sens></SENS><def>person one has affectionate bond with</def></e>
+<e><wd>friend</wd><pos>noun</pos><SENS><sens type="religion" freq="low">christian</sens><sens type="sex">sexuality</sens></SENS><def>person one has affectionate bond with</def></e>
 <e><wd>friend of Dorothy</wd><pos>noun</pos><SENS><sens type="sex">sexuality_gay, sexuality</sens></SENS><def>gay man</def></e>
 <e><wd>friend zone</wd><pos>noun</pos><SENS><sens type="sex">sexuality_relationship</sens></SENS><def>friendship in which one person has unreciprocated romantic interest in the other</def></e>
 <e><wd>friend zoned</wd><pos>noun</pos><SENS><sens type="sex">sexuality_relationship</sens></SENS><def>friendship in which one person has unreciprocated romantic interest in the other</def></e>
 <e><wd>friend zones</wd><pos>noun</pos><SENS><sens type="sex">sexuality_relationship</sens></SENS><def>friendship in which one person has unreciprocated romantic interest in the other</def></e>
 <e><wd>friend zoning</wd><pos>noun</pos><SENS><sens type="sex">sexuality_relationship</sens></SENS><def>friendship in which one person has unreciprocated romantic interest in the other</def></e>
-<e><wd>friends</wd><pos>noun</pos><SENS><sens type="religion">christian</sens><sens type="sex">sexuality</sens></SENS><def>person one has affectionate bond with</def></e>
+<e><wd>friends</wd><pos>noun</pos><SENS><sens type="religion" freq="low">christian</sens><sens type="sex">sexuality</sens></SENS><def>person one has affectionate bond with</def></e>
 <e><wd>friends of Dorothy</wd><pos>noun</pos><SENS><sens type="sex">sexuality_gay, sexuality</sens></SENS><def>gay man</def></e>
 <e><wd>friendzone</wd><pos>noun</pos><SENS><sens type="sex">sexuality_relationship</sens></SENS><def>friendship in which one person has unreciprocated romantic interest in the other</def></e>
 <e><wd>friendzoned</wd><pos>noun</pos><SENS><sens type="sex">sexuality_relationship</sens></SENS><def>friendship in which one person has unreciprocated romantic interest in the other</def></e>
@@ -7386,17 +7386,17 @@
 <e><wd>frumps</wd><pos>noun</pos><SENS><sens type="socioeconomic">poor</sens></SENS><def>unattractive woman who wears dowdy old-fashioned clothes</def></e>
 <e><wd>frustrated</wd><pos>adjective</pos><SENS><sens type="sex">sexuality</sens></SENS><def>unfulfilled sexually</def></e>
 <e><wd>fuck</wd><pos>verb</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens><sens type="sex">sexuality</sens></SENS><def>have sex with</def></e>
-<e><wd>fuck all</wd><pos>phrase</pos><SENS><sens type="vulgar">y</sens></SENS><def>absolutely nothing</def></e>
-<e><wd>fuck around</wd><pos>verb</pos><SENS><sens type="vulgar">y</sens></SENS><def>spend time doing unimportant or trivial things</def></e>
-<e><wd>fuck around with</wd><pos>verb</pos><SENS><sens type="vulgar">y</sens></SENS><def>meddle with</def></e>
+<e><wd>fuck all</wd><pos>phrase</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>absolutely nothing</def></e>
+<e><wd>fuck around</wd><pos>verb</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>spend time doing unimportant or trivial things</def></e>
+<e><wd>fuck around with</wd><pos>verb</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>meddle with</def></e>
 <e><wd>fuck boy</wd><pos>noun</pos><SENS><sens type="derogatory">y</sens><sens freq="high" degree="high" type="vulgar">y</sens><sens type="sex">sexuality</sens></SENS><def>contemptible man</def></e>
 <e><wd>fuck boys</wd><pos>noun</pos><SENS><sens type="derogatory">y</sens><sens freq="high" degree="high" type="vulgar">y</sens><sens type="sex">sexuality</sens></SENS><def>contemptible man</def></e>
 <e><wd>fuck buddies</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens><sens type="sex">sexuality</sens></SENS><def>friend or acquaintance with whom person has sex without expectation of romantic relationship</def></e>
 <e><wd>fuck buddy</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens><sens type="sex">sexuality</sens></SENS><def>friend or acquaintance with whom person has sex without expectation of romantic relationship</def></e>
-<e><wd>fuck off</wd><pos>verb</pos><SENS><sens type="vulgar">y</sens></SENS><def>go away</def></e>
-<e><wd>fuck over</wd><pos>verb</pos><SENS><sens type="vulgar">y</sens></SENS><def>treat someone badly or unfairly</def></e>
-<e><wd>fuck up</wd><pos>verb</pos><SENS><sens type="vulgar">y</sens></SENS><def>completely mismanage a situation</def></e>
-<e><wd>fuck with</wd><pos>verb</pos><SENS><sens type="vulgar">y</sens></SENS><def>meddle with</def></e>
+<e><wd>fuck off</wd><pos>verb</pos><SENS><sens type="vulgar" freq="high" degree="high">y</sens></SENS><def>go away</def></e>
+<e><wd>fuck over</wd><pos>verb</pos><SENS><sens type="vulgar" freq="high" degree="high">y</sens></SENS><def>treat someone badly or unfairly</def></e>
+<e><wd>fuck up</wd><pos>verb</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>completely mismanage a situation</def></e>
+<e><wd>fuck with</wd><pos>verb</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>meddle with</def></e>
 <e><wd>fuck you</wd><pos>interjection</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>used to express anger or contempt</def></e>
 <e><wd>fuck yous</wd><pos>interjection</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>used to express anger or contempt</def></e>
 <e><wd>fuck-head</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>stupid or contemptible person</def></e>
@@ -7414,7 +7414,7 @@
 <e><wd>fuckheads</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>stupid or contemptible person</def></e>
 <e><wd>fucking</wd><pos>adjective</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>used for emphasis or to express annoyance</def></e>
 <e><wd>fucking</wd><pos>verb</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens><sens type="sex">sexuality</sens></SENS><def>have sex with</def></e>
-<e><wd>fucking hell</wd><pos>phrase</pos><SENS><sens type="vulgar">y</sens></SENS><def>used to express anger</def></e>
+<e><wd>fucking hell</wd><pos>phrase</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>used to express anger</def></e>
 <e><wd>fucks</wd><pos>verb</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens><sens type="sex">sexuality</sens></SENS><def>have sex with</def></e>
 <e><wd>fucktard</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>contemptible or stupid person</def></e>
 <e><wd>fuckup</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>mess or muddle</def></e>
@@ -7756,11 +7756,11 @@
 <e><wd>gitano</wd><pos>noun</pos><SENS><sens type="ethnicity">gypsy</sens></SENS><def>male Spanish gypsy</def></e>
 <e><wd>gitanos</wd><pos>noun</pos><SENS><sens type="ethnicity">gypsy</sens></SENS><def>male Spanish gypsy</def></e>
 <e><wd>gits</wd><pos>noun</pos><SENS><sens type="derogatory">y</sens></SENS><def>unpleasant or contemptible person</def></e>
-<e><wd>give</wd><pos>verb</pos><SENS><sens type="sex">sexuality</sens></SENS><def>consent to have sex with</def></e>
-<e><wd>give a fuck</wd><pos>phrase</pos><SENS><sens type="vulgar">y</sens></SENS><def>be concerned about</def></e>
-<e><wd>give someone head</wd><pos>phrase</pos><SENS><sens type="vulgar">y</sens><sens type="sex">sexuality</sens></SENS><def>perform oral sex on someone</def></e>
+<e><wd>give</wd><pos>verb</pos><SENS><sens type="sex" freq="low" degree="low">sexuality</sens></SENS><def>consent to have sex with</def></e>
+<e><wd>give a fuck</wd><pos>phrase</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>be concerned about</def></e>
+<e><wd>give someone head</wd><pos>phrase</pos><SENS><sens type="vulgar" freq="high" degree="high">y</sens><sens type="sex">sexuality</sens></SENS><def>perform oral sex on someone</def></e>
 <e><wd>give someone one</wd><pos>phrase</pos><SENS><sens type="vulgar">y</sens><sens type="sex">sexuality</sens></SENS><def>(of man) have sex with woman</def></e>
-<e><wd>give someone the shits</wd><pos>phrase</pos><SENS><sens type="vulgar">y</sens></SENS><def>make someone annoyed or angry</def></e>
+<e><wd>give someone the shits</wd><pos>phrase</pos><SENS><sens type="vulgar" freq="high" degree="high">y</sens></SENS><def>make someone annoyed or angry</def></e>
 <e><wd>glamor</wd><pos>noun</pos><SENS><sens type="sex">sexuality_attraction, sexuality</sens></SENS><def>beauty or charm that is sexually attractive</def></e>
 <e><wd>glamor photography</wd><pos>noun</pos><SENS><sens type="sex">sexuality</sens></SENS><def>practice of taking photographs of sexually suggestive or mildly pornographic nature</def></e>
 <e><wd>glamorous</wd><pos>adjective</pos><SENS><sens type="sex">sexuality</sens></SENS><def>having glamour</def></e>
@@ -9052,7 +9052,7 @@
 <e><wd>issei</wd><pos>noun</pos><SENS><sens type="ethnicity">asian</sens></SENS><def>Japanese immigrant to North America</def></e>
 <e><wd>ist</wd><pos>noun</pos><SENS><sens type="derogatory">y</sens></SENS><def>follower of distinctive practice, system, or philosophy</def></e>
 <e><wd>ists</wd><pos>noun</pos><SENS><sens type="derogatory">y</sens></SENS><def>follower of distinctive practice, system, or philosophy</def></e>
-<e><wd>it</wd><pos>pronoun</pos><SENS><sens type="sex">sexuality</sens></SENS><def>sex appeal</def></e>
+<e><wd>it</wd><pos>pronoun</pos><SENS><sens type="sex" freq="low">sexuality</sens></SENS><def>sex appeal</def></e>
 <e><wd>ithyphallic</wd><pos>adjective</pos><SENS><sens type="sex">bodypart_genital, sexuality</sens></SENS><def>(of statue of deity) having erect penis</def></e>
 <e><wd>jabroni</wd><pos>noun</pos><SENS><sens type="derogatory">y</sens></SENS><def>foolish person</def></e>
 <e><wd>jabronis</wd><pos>noun</pos><SENS><sens type="derogatory">y</sens></SENS><def>foolish person</def></e>
@@ -9427,7 +9427,7 @@
 <e><wd>knockers</wd><pos>noun</pos><SENS><sens freq="medium" degree="medium" type="vulgar">y</sens><sens type="crime">y</sens><sens type="sex">bodypart_breast</sens></SENS><def>person who buys or sells from door to door</def></e>
 <e><wd>knocking shop</wd><pos>noun</pos><SENS><sens type="sex">sexuality</sens></SENS><def>brothel</def></e>
 <e><wd>knocking shops</wd><pos>noun</pos><SENS><sens type="sex">sexuality</sens></SENS><def>brothel</def></e>
-<e><wd>know</wd><pos>verb</pos><SENS><sens type="sex">sexuality</sens></SENS><def>have sex with</def></e>
+<e><wd>know</wd><pos>verb</pos><SENS><sens type="sex" freq="low">sexuality</sens></SENS><def>have sex with</def></e>
 <e><wd>know someone in the biblical sense</wd><pos>phrase</pos><SENS><sens type="sex">sexuality</sens></SENS><def>have sexual intercourse with someone</def></e>
 <e><wd>know-all</wd><pos>noun</pos><SENS><sens type="derogatory">y</sens></SENS><def>person who behaves as if they know everything</def></e>
 <e><wd>know-alls</wd><pos>noun</pos><SENS><sens type="derogatory">y</sens></SENS><def>person who behaves as if they know everything</def></e>
@@ -10007,7 +10007,7 @@
 <e><wd>macks</wd><pos>noun</pos><SENS><sens type="sex">sexuality</sens></SENS><def>confident man who has many sexual partners</def></e>
 <e><wd>madam</wd><pos>noun</pos><SENS><sens type="derogatory">y</sens><sens type="sex">sexuality</sens></SENS><def>bossy girl</def></e>
 <e><wd>madams</wd><pos>noun</pos><SENS><sens type="derogatory">y</sens><sens type="sex">sexuality</sens></SENS><def>bossy girl</def></e>
-<e><wd>made</wd><pos>verb</pos><SENS><sens type="sex">sexuality</sens></SENS><def>induce someone to have sex</def></e>
+<e><wd>made</wd><pos>verb</pos><SENS><sens type="sex" freq="low">sexuality</sens></SENS><def>induce someone to have sex</def></e>
 <e><wd>made man</wd><pos>noun</pos><SENS><sens type="crime">y</sens><sens type="socioeconomic">rich</sens></SENS><def>man whose success in life is assured</def></e>
 <e><wd>made men</wd><pos>noun</pos><SENS><sens type="crime">y</sens><sens type="socioeconomic">rich</sens></SENS><def>man whose success in life is assured</def></e>
 <e><wd>madman</wd><pos>noun</pos><SENS><sens type="disability">mental</sens></SENS><def>extremely foolish or reckless man</def></e>
@@ -10050,14 +10050,14 @@
 <e><wd>majoritarian</wd><pos>adjective</pos><SENS><sens type="politics">supporter</sens></SENS><def>person who supports government by majority</def></e>
 <e><wd>majoritarians</wd><pos>adjective</pos><SENS><sens type="politics">supporter</sens></SENS><def>person who supports government by majority</def></e>
 <e><wd>majority rule</wd><pos>noun</pos><SENS><sens type="politics">doctrine</sens></SENS><def>principle that greater number should exercise greater power</def></e>
-<e><wd>make</wd><pos>verb</pos><SENS><sens type="sex">sexuality</sens></SENS><def>induce someone to have sex</def></e>
+<e><wd>make</wd><pos>verb</pos><SENS><sens type="sex" freq="low">sexuality</sens></SENS><def>induce someone to have sex</def></e>
 <e><wd>make away with</wd><pos>verb</pos><SENS><sens type="crime">y</sens></SENS><def>carry (something) away illicitly</def></e>
 <e><wd>make love</wd><pos>phrase</pos><SENS><sens type="sex">sexuality</sens></SENS><def>have sexual intercourse</def></e>
 <e><wd>make off with</wd><pos>verb</pos><SENS><sens type="crime">y</sens></SENS><def>carry something away illicitly</def></e>
 <e><wd>make out</wd><pos>verb</pos><SENS><sens type="sex">sexuality</sens></SENS><def>kiss and caress amorously</def></e>
 <e><wd>make time</wd><pos>phrase</pos><SENS><sens type="sex">sexuality</sens></SENS><def>make sexual advances to someone</def></e>
-<e><wd>makes</wd><pos>verb</pos><SENS><sens type="sex">sexuality</sens></SENS><def>induce someone to have sex</def></e>
-<e><wd>making</wd><pos>verb</pos><SENS><sens type="sex">sexuality</sens></SENS><def>induce someone to have sex</def></e>
+<e><wd>makes</wd><pos>verb</pos><SENS><sens type="sex" freq="low">sexuality</sens></SENS><def>induce someone to have sex</def></e>
+<e><wd>making</wd><pos>verb</pos><SENS><sens type="sex" freq="low">sexuality</sens></SENS><def>induce someone to have sex</def></e>
 <e><wd>maladjustment</wd><pos>noun</pos><SENS><sens type="disability">mental</sens></SENS><def>failure to cope with demands of normal social environment</def></e>
 <e><wd>maladjustments</wd><pos>noun</pos><SENS><sens type="disability">mental</sens></SENS><def>failure to cope with demands of normal social environment</def></e>
 <e><wd>malapert</wd><pos>adjective</pos><SENS><sens type="derogatory">y</sens></SENS><def>impudent person</def></e>
@@ -11459,7 +11459,7 @@
 <e><wd>other woman</wd><pos>noun</pos><SENS><sens type="sex">sexuality</sens></SENS><def>female lover of married person</def></e>
 <e><wd>oubaas</wd><pos>noun</pos><SENS><sens type="age">old</sens></SENS><def>head of family</def></e>
 <e><wd>oubaases</wd><pos>noun</pos><SENS><sens type="age">old</sens></SENS><def>head of family</def></e>
-<e><wd>out</wd><pos>adverb</pos><SENS><sens type="sex">gender, sexuality</sens></SENS><def>not concealing one's sexuality or gender identity</def></e>
+<e><wd>out</wd><pos>adverb</pos><SENS><sens type="sex" freq="low" degree="low">gender, sexuality</sens></SENS><def>not concealing one's sexuality or gender identity</def></e>
 <e><wd>out of one's box</wd><pos>phrase</pos><SENS><sens type="substance">alcohol, drugs</sens></SENS><def>intoxicated with alcohol or drugs</def></e>
 <e><wd>out-patient</wd><pos>noun</pos><SENS><sens type="disability">y</sens></SENS><def>patient who attends hospital for treatment without staying there overnight</def></e>
 <e><wd>out-patients</wd><pos>noun</pos><SENS><sens type="disability">y</sens></SENS><def>patient who attends hospital for treatment without staying there overnight</def></e>
@@ -11851,7 +11851,7 @@
 <e><wd>penury</wd><pos>noun</pos><SENS><sens type="socioeconomic">poor</sens></SENS><def>state of being very poor</def></e>
 <e><wd>peon</wd><pos>noun</pos><SENS><sens type="socioeconomic">poor</sens></SENS><def>Spanish American day labourer</def></e>
 <e><wd>peons</wd><pos>noun</pos><SENS><sens type="socioeconomic">poor</sens></SENS><def>Spanish American day labourer</def></e>
-<e><wd>people</wd><pos>noun</pos><SENS><sens type="ethnicity">y</sens><sens type="sex">bodypart_genital</sens><sens type="socioeconomic">class</sens></SENS><def>human being regarded as individual, ordinary members of society</def></e>
+<e><wd>people</wd><pos>noun</pos><SENS><sens type="ethnicity" freq="low">y</sens><sens type="sex">bodypart_genital</sens><sens type="socioeconomic">class</sens></SENS><def>human being regarded as individual, ordinary members of society</def></e>
 <e><wd>people of color</wd><pos>noun</pos><SENS><sens type="ethnicity">y</sens></SENS><def>person who is not white</def></e>
 <e><wd>people of colour</wd><pos>noun</pos><SENS><sens type="ethnicity">y</sens></SENS><def>person who is not white</def></e>
 <e><wd>people smuggler</wd><pos>noun</pos><SENS><sens type="crime">y</sens></SENS><def>person engaged in people smuggling</def></e>
@@ -11901,7 +11901,7 @@
 <e><wd>persecutions</wd><pos>noun</pos><SENS><sens type="politics">y</sens><sens type="religion">y</sens><sens type="sex">sexuality</sens></SENS><def>hostility and ill-treatment</def></e>
 <e><wd>persecutor</wd><pos>noun</pos><SENS><sens type="politics">y</sens><sens type="religion">y</sens><sens type="sex">sexuality</sens></SENS><def>person who persecutes someone</def></e>
 <e><wd>persecutors</wd><pos>noun</pos><SENS><sens type="politics">y</sens><sens type="religion">y</sens><sens type="sex">sexuality</sens></SENS><def>person who persecutes someone</def></e>
-<e><wd>person</wd><pos>noun</pos><SENS><sens type="sex">bodypart_genital</sens></SENS><def>human being regarded as individual</def></e>
+<e><wd>person</wd><pos>noun</pos><SENS><sens type="sex" freq="low">bodypart_genital</sens></SENS><def>human being regarded as individual</def></e>
 <e><wd>person of color</wd><pos>noun</pos><SENS><sens type="ethnicity">y</sens></SENS><def>person who is not white</def></e>
 <e><wd>person of colour</wd><pos>noun</pos><SENS><sens type="ethnicity">y</sens></SENS><def>person who is not white</def></e>
 <e><wd>personal ad</wd><pos>noun</pos><SENS><sens type="sex">sexuality_relationship</sens></SENS><def>private advertisement or message placed in newspaper</def></e>
@@ -14111,13 +14111,13 @@
 <e><wd>shirtlifter</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="offensive">y</sens><sens type="sex">sexuality_gay, sexuality</sens></SENS><def>gay man</def></e>
 <e><wd>shirtlifters</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="offensive">y</sens><sens type="sex">sexuality_gay, sexuality</sens></SENS><def>gay man</def></e>
 <e><wd>shit</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens><sens type="substance">drugs</sens></SENS><def>faeces</def></e>
-<e><wd>shit bricks</wd><pos>phrase</pos><SENS><sens type="vulgar">y</sens></SENS><def>be extremely nervous or frightened</def></e>
+<e><wd>shit bricks</wd><pos>phrase</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>be extremely nervous or frightened</def></e>
 <e><wd>shit disturber</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>person who enjoys causing trouble</def></e>
 <e><wd>shit disturbers</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>person who enjoys causing trouble</def></e>
 <e><wd>shit fit</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>uncontrolled outburst of anger</def></e>
 <e><wd>shit fits</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>uncontrolled outburst of anger</def></e>
-<e><wd>shit for brains</wd><pos>phrase</pos><SENS><sens type="vulgar">y</sens></SENS><def>stupid person</def></e>
-<e><wd>shit or get off the pot</wd><pos>phrase</pos><SENS><sens type="vulgar">y</sens></SENS><def>used to convey that someone should stop wasting time and get on with something</def></e>
+<e><wd>shit for brains</wd><pos>phrase</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>stupid person</def></e>
+<e><wd>shit or get off the pot</wd><pos>phrase</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>used to convey that someone should stop wasting time and get on with something</def></e>
 <e><wd>shit show</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>situation or event marked by chaos or controversy</def></e>
 <e><wd>shit shows</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>situation or event marked by chaos or controversy</def></e>
 <e><wd>shit-bag</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>contemptible person</def></e>
@@ -14174,7 +14174,7 @@
 <e><wd>shithouses</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>toilet</def></e>
 <e><wd>shitkicker</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>unsophisticated person</def></e>
 <e><wd>shitkickers</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>unsophisticated person</def></e>
-<e><wd>shitless</wd><pos>phrase</pos><SENS><sens type="vulgar">y</sens></SENS><def>be extremely bored, be extremely frightened</def></e>
+<e><wd>shitless</wd><pos>phrase</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>be extremely bored, be extremely frightened</def></e>
 <e><wd>shitlist</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>list of those whom one dislikes or plans to harm</def></e>
 <e><wd>shitlists</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>list of those whom one dislikes or plans to harm</def></e>
 <e><wd>shitload</wd><pos>noun</pos><SENS><sens freq="high" degree="high" type="vulgar">y</sens></SENS><def>large amount or number</def></e>
@@ -15553,9 +15553,9 @@
 <e><wd>thearchy</wd><pos>noun</pos><SENS><sens type="politics">system</sens></SENS><def>rule by god or gods</def></e>
 <e><wd>theft</wd><pos>noun</pos><SENS><sens type="crime">y</sens></SENS><def>action or crime of stealing</def></e>
 <e><wd>thefts</wd><pos>noun</pos><SENS><sens type="crime">y</sens></SENS><def>action or crime of stealing</def></e>
-<e><wd>their</wd><pos>determiner</pos><SENS><sens type="sex">gender_transgender</sens></SENS><def>associated with person whose gender identity does not correspond to traditional binary oppositions</def></e>
+<e><wd>their</wd><pos>determiner</pos><SENS><sens type="sex" freq="low">gender_transgender</sens></SENS><def>associated with person whose gender identity does not correspond to traditional binary oppositions</def></e>
 <e><wd>theirs</wd><pos>pronoun</pos><SENS><sens type="sex">gender_transgender</sens></SENS><def>used to refer to thing belonging to person whose gender identity does not correspond to traditional binary oppositions</def></e>
-<e><wd>them</wd><pos>pronoun</pos><SENS><sens type="sex">gender_transgender</sens></SENS><def>referring to person whose gender identity does not correspond to traditional binary oppositions</def></e>
+<e><wd>them</wd><pos>pronoun</pos><SENS><sens type="sex" freq="low">gender_transgender</sens></SENS><def>referring to person whose gender identity does not correspond to traditional binary oppositions</def></e>
 <e><wd>themself</wd><pos>pronoun</pos><SENS><sens type="sex">gender_transgender</sens></SENS><def>used to refer to person whose gender identity does not correspond to traditional binary oppositions</def></e>
 <e><wd>themselves</wd><pos>pronoun</pos><SENS><sens type="sex">gender_transgender</sens></SENS><def>used to refer to person whose gender identity does not correspond to traditional binary oppositions</def></e>
 <e><wd>theocracies</wd><pos>noun</pos><SENS><sens type="politics">system</sens><sens type="religion">y</sens></SENS><def>system of government in which priests rule in name of God</def></e>
@@ -15563,7 +15563,7 @@
 <e><wd>theoterrorism</wd><pos>noun</pos><SENS><sens type="crime">y</sens><sens type="politics">terrorism</sens></SENS><def>terrorism that has religious motive or purpose</def></e>
 <e><wd>theoterrorisms</wd><pos>noun</pos><SENS><sens type="crime">y</sens><sens type="politics">terrorism</sens></SENS><def>terrorism that has religious motive or purpose</def></e>
 <e><wd>there's none so blind as those who will not see</wd><pos>phrase</pos><SENS><sens type="other">controversial_disability</sens></SENS><def>there's no point trying to reason with someone who does not want to listen</def></e>
-<e><wd>they</wd><pos>pronoun</pos><SENS><sens type="sex">gender_transgender</sens></SENS><def>used to refer to person whose gender identity does not correspond to traditional binary opposition</def></e>
+<e><wd>they</wd><pos>pronoun</pos><SENS><sens type="sex" freq="low">gender_transgender</sens></SENS><def>used to refer to person whose gender identity does not correspond to traditional binary opposition</def></e>
 <e><wd>thickhead</wd><pos>noun</pos><SENS><sens type="derogatory">y</sens></SENS><def>stupid person</def></e>
 <e><wd>thickheads</wd><pos>noun</pos><SENS><sens type="derogatory">y</sens></SENS><def>stupid person</def></e>
 <e><wd>thicko</wd><pos>noun</pos><SENS><sens type="derogatory">y</sens></SENS><def>unintelligent person</def></e>
@@ -15572,7 +15572,7 @@
 <e><wd>thievery</wd><pos>noun</pos><SENS><sens type="crime">y</sens></SENS><def>action of stealing another person's property</def></e>
 <e><wd>thieves</wd><pos>noun</pos><SENS><sens type="crime">y</sens></SENS><def>person who steals another person's property</def></e>
 <e><wd>thieving</wd><pos>adjective</pos><SENS><sens type="crime">y</sens></SENS><def>action of stealing</def></e>
-<e><wd>thing</wd><pos>noun</pos><SENS><sens type="sex">bodypart_genital, sexuality_relationship</sens></SENS><def>used euphemistically to refer to man's penis</def></e>
+<e><wd>thing</wd><pos>noun</pos><SENS><sens type="sex" freq="low">bodypart_genital, sexuality_relationship</sens></SENS><def>used euphemistically to refer to man's penis</def></e>
 <e><wd>things</wd><pos>noun</pos><SENS><sens type="sex">bodypart_genital, sexuality_relationship</sens></SENS><def>used euphemistically to refer to man's penis</def></e>
 <e><wd>third degree</wd><pos>adjective</pos><SENS><sens type="crime">murder, police</sens></SENS><def>denoting least serious category of crime</def></e>
 <e><wd>third estate</wd><pos>noun</pos><SENS><sens type="socioeconomic">class</sens></SENS><def>common people as part of country's political system</def></e>
@@ -16168,7 +16168,7 @@
 <e><wd>urogenital</wd><pos>adjective</pos><SENS><sens type="sex">bodypart_genital</sens></SENS><def>of both urinary and genital organs</def></e>
 <e><wd>urolagnia</wd><pos>noun</pos><SENS><sens type="sex">sexuality</sens></SENS><def>tendency to derive sexual pleasure from sight</def></e>
 <e><wd>use</wd><pos>verb</pos><SENS><sens type="substance">drugs</sens></SENS><def>take</def></e>
-<e><wd>used</wd><pos>verb</pos><SENS><sens type="substance">drugs</sens></SENS><def>take</def></e>
+<e><wd>used</wd><pos>verb</pos><SENS><sens type="substance" freq="low">drugs</sens></SENS><def>take</def></e>
 <e><wd>user</wd><pos>noun</pos><SENS><sens type="substance">drugs</sens></SENS><def>person who uses or operates something</def></e>
 <e><wd>users</wd><pos>noun</pos><SENS><sens type="substance">drugs</sens></SENS><def>person who uses or operates something</def></e>
 <e><wd>uses</wd><pos>verb</pos><SENS><sens type="substance">drugs</sens></SENS><def>take</def></e>

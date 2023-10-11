@@ -85,7 +85,8 @@ sub main
 #	$FLDS[4] =~ s|&nl;|\n|g;
 	#	($wd, $context, $hw, $tag, $lexid, $context_cp, $original_text, $pos, $def, $derogatory, $offensive, $vulgar, $sensitivity_classes) = split(/\t/);
 	$worksheet->write_row( $row, 0, \@FLDS);	
-	#	$worksheet->write_string($row, 1, $context);       	
+	&write_context($context, $row);
+	    #	$worksheet->write_string($row, 1, $context);       	
 	my $link = sprintf("https://dws-dps.idm.fr/web/browser/view/\?projectCode=%s&entryId=%s&elementId=%s", $opt_c, $dbid, $eid); 
 	$worksheet->write_url($row, 4, $link, undef, "See xpath");      
 	$row++;
