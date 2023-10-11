@@ -4,8 +4,8 @@ use autodie qw(:all);
 use open qw(:std :utf8);
 use utf8;
 use strict;
-our ($LOG, $LOAD, $opt_f, $opt_u, $opt_D, $opt_I, $opt_O);
-our (%DEROG, %OFFENSIVE, %VULGAR, %SENSITIVE, %CLASSES, %DEF, %SENS, %TYPES, %CPDS, %FSCORE, %DSCORE, %SCORE);
+our ($LOG, $LOAD, $opt_f, $opt_u, $opt_D, $opt_I, $opt_O, $opt_x);
+our (%DEROG, %OFFENSIVE, %VULGAR, %SENSITIVE, %CLASSES, %DEF, %SENS, %TYPES, %CPDS, %FSCORE, %DSCORE, %SCORE, %EXCLUDE, %IGNORE);
 #
 # Input: File that has been split into the tags that are to be checked - as with the Spell Check input
 # Data file: -f sensitiityInfo.xml - data extracted from ODE in tagged format
@@ -37,7 +37,7 @@ $\ = "\n";              # set output record separator
 
 sub main
 {
-    getopts('uf:L:IODo:');
+    getopts('uf:L:IODo:x:');
     &usage if ($opt_u);
     my($e, $res, $bit, $tag);
     my %WD_USED;
@@ -50,6 +50,10 @@ sub main
     if ($opt_D)
     {
 	binmode DB::OUT,":utf8";
+    }
+    if ($opt_x)
+    {
+	&load_exclusions($opt_x);
     }
     &load_file($opt_f);    
     my $hdr = join("\t", "Word", "HW", "Context", "More Context", "tag", "Derogatory, Offensive or Vulgar", "Derogatory", "Offensive", "Vulgar", "Sensitivity classes", "def", "lexid", "EntryId", "e:id", "dbid", "word score", "total score", "Times seen");
@@ -318,7 +322,9 @@ sub usage
     exit;
 }
 
-sub load_file
+
+
+sub load_exclusions
 {
     my($f) = @_;
     my ($res, $bit, $info);
@@ -328,8 +334,30 @@ sub load_file
 	chomp;
 	s|| |g;
 	# my ($eid, $info) = split(/\t/);
+	my $ignore = restructure::get_tag_contents($_, "Ignore");
+	if ($ignore =~ m|y|i)
+	{
+	    my $wd = restructure::get_tag_contents($_, "Word");
+	    $IGNORE{$wd} = 1;
+	}
+    }
+    close(in_fp);
+} 
+
+sub load_file
+{
+    my($f) = @_;
+    my ($res, $bit, $info);
+    open(in_fp, "$f") || die "Unable to open $f"; 
+    binmode(in_fp, ":utf8");
+  wloop:
+    while (<in_fp>){
+	chomp;
+	s|| |g;
+	# my ($eid, $info) = split(/\t/);
 	my $wd = restructure::get_tag_contents($_, "wd");	
 	my $def = restructure::get_tag_contents($_, "DEF");
+	next wloop if ($IGNORE{$wd});
 	if ($wd =~ m| |)
 	{
 	    # Only mark the compounds that have degree added as cpds - otherwise get too many and it's v slow
@@ -338,7 +366,7 @@ sub load_file
 		$CPDS{$wd} = 1;
 		$wd =~ s| +|_|g;
 	    }
-	}
+	}	
 	$SENSITIVE{$wd} = 1;
 	my ($wdfreq, $wddegree);
 	if (m| freq=\"(.*?)\"|)
@@ -415,71 +443,3 @@ sub load_file
 } 
 
 
-sub sensitivity_check_old
-{
-    my($e, $tag, $h, $EntryId, $eid, $dbid) = @_;
-    my($res);	
-    my($bit, $res);
-    my %USED;
-    # CHANGE TO MARK ALL SENSITIVE WDS WITH THE HIGHEST SCORING ONE THE ONE THAT IS DONE FIRST
-    ##    $e = &mark_highest_scoring($e);
-    my @WDS = split(/ +/, $e);
-    $res = "";
-  floop:
-    foreach my $wd (@WDS){
-	if ($wd =~ m|^[A-Za-z0-9_\-\'\N{U+370}-\N{U+3FF}\N{U+C0}-\N{U+CFF}]|){
-	    my $lcwd = $wd;
-	    $lcwd =~ tr|A-Z|a-z|;
-	    if ($SENSITIVE{$lcwd})
-	    {
-		unless ($USED{$lcwd}++)
-		{
-		    #		    my $cp = $context;
-		    my $cp = $e;
-		    $cp =~ s|^ *| |g;
-		    $cp =~ s| *$| |g;
-		    $cp =~ s|([^A-Za-z0-9_\-\'\N{U+370}-\N{U+3FF}\N{U+C0}-\N{U+CFF}])$wd([^A-Za-z0-9_\-\'\N{U+370}-\N{U+3FF}\N{U+C0}-\N{U+CFF}])|\1<red>$wd</red>\2|g;
-		    unless ($cp =~ m|<red|)
-		    {
-			$cp =~ s|([^A-Za-z0-9_\-\'\N{U+370}-\N{U+3FF}\N{U+C0}-\N{U+CFF}])($wd)([^A-Za-z0-9_\-\'\N{U+370}-\N{U+3FF}\N{U+C0}-\N{U+CFF}])|\1<red>$wd/red>\3|gi;
-		    }
-		    $cp =~ s|^ *||;
-		    $cp =~ s| *$||;
-		    my $cp2 = $cp;
-		    $cp2 =~ s|</?red>||gi;
-		    #
-		    # Just deal with lower case
-		    $wd = $lcwd;
-		    my $def = $DEF{$wd};
-		    my $wdsens = "";		    
-		    foreach my $type (sort keys %TYPES) 
-		    {
-			my $wd_type = sprintf("%s\t%s", $wd, $type); 
-			my $sens = $SENS{$wd_type};
-			unless ($sens =~ m|^ *$|)
-			{
-			    #			    printf(STDERR "%s\n", $sens); 
-			}
-			unless ($sens =~ m|^ *$|)
-			{
-			    $wdsens .= sprintf("<$type>%s</$type>",  $sens);
-			}
-		    }
-		    # Should have now built up a tab delimited set of classes for the word for each type in wdsens
-		    my $classes = $CLASSES{$wd};
-		    my $derog = $DEROG{$wd};
-		    my $offensive = $OFFENSIVE{$wd};
-		    my $vulgar = $VULGAR{$wd};
-		    $def =~ s|; *$||;
-		    $classes =~ s|; *$||;
-		    my $info = sprintf("$derog\t$offensive\t$vulgar\t$classes\t$def"); 
-		    $wdsens =~ s|\t$||;
-		    #		    my $row = sprintf("<wd>$wd</wd><cp>$cp</cp><h>$h</h><tag>$tag</tag><EntryId>$EntryId</EntryId><eid>$eid</eid><dbid>$dbid</dbid><WDSENS>$wdsens</WDSENS><def>$def</def>"); 
-		    my $row = join("\t", $wd, $cp, $h, "", $tag, "", $derog, $offensive, $vulgar, $classes, $def, $EntryId, $eid, $dbid, $wdsens);
-		    #		    printf("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $wd, $cp, $h, $tag, $wdsens, $def,  $EntryId, $dbId);
-		    print $row;
-		}
-	    }
-	}
-  }    
-}
