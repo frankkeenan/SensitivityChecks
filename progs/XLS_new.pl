@@ -39,7 +39,7 @@ sub main
     if ($opt_D) {binmode DB::OUT,":utf8";}
 
     $workbook  = Excel::Writer::XLSX->new( $opt_r );
-    $worksheet = $workbook->add_worksheet();
+    $worksheet = $workbook->add_worksheet('Sensitivity');
     $worksheet_dict = $workbook->add_worksheet('Dict');
 
     &create_format_objects;
@@ -139,6 +139,7 @@ sub main
 	$worksheet->set_column( 'L:L', 20 );   # Columns F-H width set to 30
 	$worksheet->set_column( 'M:O', 20, $hidden_fmt);   # Columns F-H width set to 30
 	$worksheet->set_column( 'P:S', 10 );   # Columns F-H width set to 30
+	$worksheet_dict->set_column( 'B:B', 160 );   # Columns F-H width set to 30
     }
     $worksheet->autofilter( 'A1:W99999' );
     $workbook->close();
@@ -199,7 +200,7 @@ sub write_context
     }
 }
 
-sub load_dict
+sub load_dict_old
 {
     my($f) = @_;
     my ($res, $bit, $info);
@@ -221,10 +222,7 @@ sub load_dict
 	{
 	    next wline2;
 	}
-	s|(<s[0-9][^>]*>)|&nl;$1|gi;
-	s|</tx>|: |gi;
-	s|<[^>]*>| |gi;
-	s| +| |g;
+	$_ = &fmt_dict_xml($_);
 	
 	unless ($USED{$EntryId}++)
 	{
@@ -238,6 +236,26 @@ sub load_dict
     close(in_fp);
 } 
 
+sub fmt_dict_xml
+{
+    my($e) = @_;
+    my($res, $eid);	
+    my @TAGS = ("sense", "entry", "posUnit", "note", "exampleUnit", "s1", "s2", "s3", "gramb", "semb", "exg", "idmb", "pvg", "trg");
+    $e =~ s|£|&\#x00A3;|g;
+    foreach my $tag (@TAGS)
+    {
+	$e =~ s|(<$tag[ >])|£\1|gi;
+    }
+    $e =~ s|<.*?>| |gi;
+    $e =~ s| +| |g;
+    $e =~ s|£+|£|g;
+    $e =~ s|[ £]*£[ £]*|£|g;
+    $e =~ s|^£||g;
+    $e =~ s|£|&nl;|g;
+    $e =~ s|&\#x00A3;|£|g;
+    return $e;
+
+}
 
 sub colorize_max
 {
@@ -336,10 +354,8 @@ sub load_dict
 	my $EntryId = restructure::get_tag_attval($_, "e", "e:id");
 	$_ = restructure::tag_delete($_, "pr");
 	$_ = restructure::tag_delete($_, "prx"); 
-	s|(<s[0-9][^>]*>)|&nl;$1|gi;
-	s|</tx>|: |gi;
-	s|<[^>]*>| |gi;
-	s| +| |g;
+	$_ = &fmt_dict_xml($_);
+	s|&nl;|\n|g;
 	$DICT{$EntryId} = $_;
     }
     close(in_fp);
