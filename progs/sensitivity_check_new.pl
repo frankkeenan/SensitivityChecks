@@ -21,8 +21,8 @@ $DSCORE{"high"} = 20;
 #
 if (1)
 {
-    require "/NEWdata/dicts/generic/progs/utils.pl";
-    require "/NEWdata/dicts/generic/progs/restructure.pl";
+    require "/usr/local/bin/utils.pl";
+    require "/usr/local/bin/restructure.pl";
 }
 else {
     require "./utils.pl";
@@ -334,11 +334,11 @@ sub load_exclusions
 	chomp;
 	s|| |g;
 	# my ($eid, $info) = split(/\t/);
-	my $ignore = restructure::get_tag_contents($_, "Ignore");
-	if ($ignore =~ m|y|i)
+	if (m|[a-z]|i)
 	{
-	    my $wd = restructure::get_tag_contents($_, "Word");
-	    $IGNORE{$wd} = 1;
+	    s|^ *||;
+	    s| *$||;
+	    $IGNORE{$_} = 1;
 	}
     }
     close(in_fp);

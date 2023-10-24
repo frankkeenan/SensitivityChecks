@@ -1,0 +1,1 @@
+../inherit_lexids.pl
