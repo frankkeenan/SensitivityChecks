@@ -4,7 +4,7 @@ use autodie qw(:all);
 use open qw(:std :utf8);
 use utf8;
 use strict;
-our ($LOG, $LOAD, $opt_f, $opt_u, $opt_D, $opt_I, $opt_O, $opt_x);
+our ($LOG, $LOAD, $opt_i, $opt_f, $opt_u, $opt_D, $opt_I, $opt_O, $opt_x);
 our (%DEROG, %OFFENSIVE, %VULGAR, %SENSITIVE, %CLASSES, %DEF, %SENS, %TYPES, %CPDS, %FSCORE, %DSCORE, %SCORE, %EXCLUDE, %IGNORE);
 #
 # Input: File that has been split into the tags that are to be checked - as with the Spell Check input
@@ -37,7 +37,7 @@ $\ = "\n";              # set output record separator
 
 sub main
 {
-    getopts('uf:L:IODo:x:');
+    getopts('uf:L:IODo:x:i:');
     &usage if ($opt_u);
     my($e, $res, $bit, $tag);
     my %WD_USED;
@@ -54,6 +54,10 @@ sub main
     if ($opt_x)
     {
 	&load_exclusions($opt_x);
+    }
+    if ($opt_i)
+    {
+	&load_inclusions($opt_i);
     }
     &load_file($opt_f);    
     my $hdr = join("\t", "Word", "HW", "Context", "More Context", "tag", "Derogatory, Offensive or Vulgar", "Derogatory", "Offensive", "Vulgar", "Sensitivity classes", "def", "lexid", "EntryId", "e:id", "dbid", "word score", "total score", "Times seen");
@@ -343,6 +347,50 @@ sub load_exclusions
     }
     close(in_fp);
 } 
+
+sub load_inclusions
+{
+    my($f) = @_;
+    my ($res, $bit, $info);
+    open(in_fp, "$f") || die "Unable to open $f"; 
+    binmode(in_fp, ":utf8");
+  wloop2:
+    while (<in_fp>){
+	chomp;
+	s|| |g;
+	# my ($eid, $info) = split(/\t/);
+	if (m|[a-z]|i)
+	{
+	    s|^ *||;
+	    s| *$||;
+	    my $wd;
+	    next wloop2 unless (m|<hw|);
+	    $wd = restructure::get_tag_contents($_, "hw");
+	    my $def = restructure::get_tag_contents($_, "def"); 
+	    my $vulgar = restructure::get_tag_contents($_, "vulgar");
+	    my $derog = restructure::get_tag_contents($_, "derogatory");
+	    my $offensive = restructure::get_tag_contents($_, "offensive");
+	    my $vulgar_offensive_avoid = restructure::get_tag_contents($_, "vulgar_offensive_avoid");
+	    unless ($offensive =~ m|^ *$|)
+	    {
+		$OFFENSIVE{$wd} = $offensive;
+	    }
+	    unless ($derog =~ m|^ *$|)
+	    {
+		$DEROG{$wd} = $derog;
+	    }
+	    unless ($vulgar =~ m|^ *$|)
+	    {
+		$VULGAR{$wd} = $vulgar;
+	    }
+	    $DEF{$wd} = sprintf("%s%s; ", $DEF{$wd}, $def);
+	    $SCORE{$wd} = 15;
+
+	}
+    }
+    close(in_fp);
+} 
+
 
 sub load_file
 {
