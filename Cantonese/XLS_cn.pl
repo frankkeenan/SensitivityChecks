@@ -6,11 +6,12 @@ use Excel::Writer::XLSX;
 use strict;
 our ($LOAD, $opt_f, $opt_u, $opt_D, $opt_r, $opt_I, $opt_O, %W, %USED, %F, $DoLink, %LINK, %TimesSeen, %E_EIDS, %DICT);
 our $LOG;
-our $PDIR = "/usr/local/bin/";
-#$PDIR = ".";
+#
+my $PDIR = "/usr/local/bin/";
 
 require "$PDIR/utils.pl";
 require "$PDIR/restructure.pl";
+#require "/NEWdata/dicts/generic/progs/xsl_lib_fk.pl";
 $, = ' ';               # set output field separator
 $\ = "\n";              # set output record separator
 $DoLink = 0;
@@ -53,11 +54,12 @@ sub main
 	if ($opt_I){printf(bugin_fp "%s\n", $_);}
 	# set the max attribute
 	my $coloured;
-	my ($wd, $h, $context, $more_context, $tag, $info, $def, $lexid, $EntryId, $eid, $dbid, $maxscore, $totscore, $ct) = split(/\t/);
+	my ($wd, $h, $context, $context_ts, $more_context, $tag, $info, $def, $lexid, $EntryId, $eid, $dbid, $maxscore, $totscore, $ct) = split(/\t/);
 	my @FLDS = split(/\t/, $_);
 # 0  'Word'
 # 1  'HW'
 # 2  'Context'
+# == SPLICING Context Trans
 # 3  'More Context'
 # 4  'tag'
 # 5  'Derogatory, Offensive or Vulgar'
@@ -74,6 +76,8 @@ sub main
 # 16  'total score'
 # 17  'Times seen'
 	$EntryId = $FLDS[12];
+	$EntryId =~ s|\..*$||;
+	$FLDS[10] =~ s|^ *sensitive:||i;
 	$worksheet->write_row( $row, 0, \@FLDS);	
 	$context = $FLDS[2];
 	if ($context =~ m| max=\"y\"|)
@@ -84,7 +88,7 @@ sub main
 	}
 	my $comm = sprintf("\$worksheet->write_rich_string(%d, 2, %s)", $row, $coloured); 
 	eval $comm;
-	printf("%d\t%s\n", $row, $comm); 
+#	printf("%d\t%s\n", $row, $comm); 
 	unless ($LINK{$EntryId})
 	{
 	    # Not created this entry before
@@ -97,7 +101,7 @@ sub main
 	$more_context = $LINK{$EntryId};
 	unless ($more_context =~ m|^ *$|)
 	{
-	    $worksheet->write_url($row, 3, $more_context, undef, "Full Entry");
+	    $worksheet->write_url($row, 4, $more_context, undef, "Full Entry");
 	}
 	$row++;
 	if ($opt_O){printf(bugout_fp "%s\n", $_);}
@@ -110,16 +114,11 @@ sub main
     ##    $worksheet->protect({autofilter => 1});
     if (1)
     {
-	$worksheet->set_column( 'A:A', 20 );   # Columns F-H width set to 30
-	$worksheet->set_column( 'B:B', 20 );   # Columns F-H width set to 30
-	$worksheet->set_column( 'C:C', 80 );   # Columns F-H width set to 30
-	$worksheet->set_column( 'D:D', 20);   # Columns F-H width set to 30
-	$worksheet->set_column( 'E:I', 20, $centered_fmt  );   # Columns F-H width set to 30
+	$worksheet->set_column( 'A:T', 20 );   # Set default column width
+	$worksheet->set_column( 'C:D', 60 );   # Columns F-H width set to 30
 	$worksheet->set_column( 'J:J', 40 );   # Columns F-H width set to 30
-	$worksheet->set_column( 'K:K', 50, $centered_fmt );   # Columns F-H width set to 30
-	$worksheet->set_column( 'L:L', 20 );   # Columns F-H width set to 30
-	$worksheet->set_column( 'M:O', 20, $hidden_fmt);   # Columns F-H width set to 30
-	$worksheet->set_column( 'P:S', 10 );   # Columns F-H width set to 30
+	$worksheet->set_column( 'L:L', 20, $hidden_fmt);   # Columns F-H width set to 30
+	$worksheet->set_column( 'N:T', 20, $hidden_fmt);   # Columns F-H width set to 30
 	$worksheet_dict->set_column( 'B:B', 160 );   # Columns F-H width set to 30
     }
     $worksheet->autofilter( 'A1:W99999' );
@@ -221,7 +220,7 @@ sub fmt_dict_xml
 {
     my($e) = @_;
     my($res, $eid);	
-    my @TAGS = ("sense", "entry", "posUnit", "note", "exampleUnit", "s1", "s2", "s3", "gramb", "semb", "exg", "idmb", "pvg", "trg");
+    my @TAGS = ("sense", "entry", "posUnit", "note", "exampleUnit", "s1", "s2", "s3", "gramb", "semb", "exg", "idmb", "pvg", "trg", "xrefs");
     $e =~ s|£|&\#x00A3;|g;
     foreach my $tag (@TAGS)
     {
@@ -331,13 +330,53 @@ sub load_dict
 	chomp;
 	s|||g;
 	my($hw, $eng) = split(/\t/);
-	next wline2 unless (m|<e |);
-	my $EntryId = restructure::get_tag_attval($_, "e", "e:id");
-	$_ = restructure::tag_delete($_, "pr");
+	next wline2 unless (m|<entry|);
+	my $EntryId = restructure::get_tag_attval($_, "entryGroup", "lexid");
+	$_ = restructure::tag_delete($_, "pronunciations");
 	$_ = restructure::tag_delete($_, "prx"); 
+	if (m| suppressed=\"true\"|)
+	{
+	    $_ = &lose_suppressed($_);
+	}
 	$_ = &fmt_dict_xml($_);
 	s|&nl;|\n|g;
 	$DICT{$EntryId} = $_;
     }
     close(in_fp);
 } 
+
+sub lose_suppressed
+{
+    my($e) = @_;
+    my($res, $eid);	
+    while ($e =~ m|(<[^>]* suppressed=\"true\".*?>)|)
+    {
+	my $tagname = restructure::get_tagname($1);
+	my $cp = $e;
+	$e = &lose_suppressed_tag($e, $tagname);
+	last if ($cp eq $e);
+    }
+    return $e;
+}
+
+sub lose_suppressed_tag
+{
+    my($e, $tag) = @_;
+    my($res, $eid);	
+    my($bit, $res);
+    my(@BITS);
+    $e =~ s|(<$tag[ >].*?</$tag>)|&split;&fk;$1&split;|gi;
+    @BITS = split(/&split;/, $e);
+    $res = "";
+    foreach my $bit (@BITS){
+	if ($bit =~ s|&fk;||gi){
+	    my $sup = restructure::get_tag_attval($bit, $tag, "suppressed");
+	    if ($sup =~ m|true|i)
+	    {
+		$bit = "";
+	    }
+	}
+	$res .= $bit;
+    }    
+    return $res;
+}
