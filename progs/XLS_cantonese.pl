@@ -58,6 +58,7 @@ sub main
 	chomp;       # strip record separator
 	s|||g;
 	if ($opt_I){printf(bugin_fp "%s\n", $_);}
+	my @FLDS = split(/\t/);
 	if ($lct++ < 1)
 	{	    
 	    my $hdr = join("\t", "Word", "Context", "Suppress example and example trans", "HW", "HW_Trans", "tag", "More Context", "Derogatory OR Offensive OR Vulgar", "Derogatory", "Offensive", "Vulgar", "Sensitivity classes", "def", "EntryId", "id", "dbid", "wdsens", "Times Used", "Times Seen");
@@ -84,7 +85,9 @@ sub main
 	# 16  'wdsens'
 	# 17  'Times Used'
 	# 18  'Which Occurrence of context'
-
+	my @FLDS = split(/\t/);
+	my $lexid = $FLDS[11];
+	$lexid =~ s|\..*$||;
 	my ($wd, $context, $h, $h_trans, $tag, $more_context, $derog, $offensive, $vulgar, $classes, $def, $EntryId, $eid, $dbid, $wdsens) = split(/\t/);	
 	my $TimesUsed = $FREQ{$wd};
 	my $cp = $context;
@@ -96,11 +99,13 @@ sub main
 	} else {
 	    $derog_offens_vulgar = "Yes";
 	}
-
+	my $lexid = $FLDS[11];
+	$lexid =~ s|\..*$||;
+	$EntryId = $lexid;
 	my @FLDS = ($wd, $context, "", $h, $h_trans, $tag, $more_context, $derog_offens_vulgar, $derog, $offensive, $vulgar, $classes, $def, $EntryId, $eid, $dbid, $wdsens, $TimesUsed, $TimesSeen);
 	$worksheet->write_row( $row, 0, \@FLDS);	
 	&write_context($context, $row);
-	$more_context = $LINK{$EntryId}; # = sprintf("internal:Dict!B$row"); 
+	$more_context = $LINK{$EntryId};
 	if ($more_context =~ m|^ *$|)
 	{
 	    printf(log_fp "%s\n", $EntryId); 
@@ -207,15 +212,13 @@ sub load_dict
 #	my $hw = restructure::get_tag_contents($_, "hw");
 #	my $eng = restructure::get_tag_contents($_, "eng");
 	next wline2 unless (m|<entry|);
-	my $EntryId = restructure::get_tag_attval($_, "entry", "eid");
+	my $EntryId = restructure::get_tag_attval($_, "entryGroup", "lexid");
+#	my $EntryId = restructure::get_tag_attval($_, "entry", "eid");
 	unless ($E_EIDS{$EntryId})
 	{
 	    next wline2;
 	}
-	s|(<s[0-9][^>]*>)|&nl;$1|gi;
-	s|</tx>|: |gi;
-	s|<[^>]*>| |gi;
-	s| +| |g;
+	$_ = &fmt_dict_xml($_);
 	
 	unless ($USED{$EntryId}++)
 	{
@@ -228,6 +231,28 @@ sub load_dict
     }
     close(in_fp);
 } 
+
+sub fmt_dict_xml
+{
+    my($e) = @_;
+    my($res, $eid);	
+    my @TAGS = ("sense", "entry", "posUnit", "note", "exampleUnit", "s1", "s2", "s3", "gramb", "semb", "exg", "idmb", "pvg", "trg", "xrefs");
+    $e =~ s|£|&\#x00A3;|g;
+    foreach my $tag (@TAGS)
+    {
+	$e =~ s|(<$tag[ >])|£\1|gi;
+    }
+    $e =~ s|<.*?>| |gi;
+    $e =~ s| +| |g;
+    $e =~ s|£+|£|g;
+    $e =~ s|[ £]*£[ £]*|£|g;
+    $e =~ s|^£||g;
+    $e =~ s|£|&nl;|g;
+    $e =~ s|&\#x00A3;|£|g;
+    return $e;
+
+}
+
 
 sub load_file
 {
@@ -250,32 +275,13 @@ sub load_file
 
 	s|\t.*$||;
 	#	printf("%s\n", $FLDS[7]);
+	$EntryId =~ s|\..*$||;
 	$FREQ{$wd}++;
 	$E_EIDS{$EntryId} = 1;
   }
     close(in_fp);
 } 
 
-
-
-sub get_rich_string_excel_unhappy
-{
-    my($e) = @_;
-    my($res, $eid);	
-    $e =~ s|(<red>.*?</red>)|&split;&fk;$1&split;|gi;
-    my @BITS = split(/&split;/, $e);
-    my $res = "";
-    foreach my $bit (@BITS){
-	if ($bit =~ s|&fk;||gi){
-	    my $bit = restructure::get_tag_contents($bit, "red"); 
-	    $res = sprintf("%s\$red_fmt, \"%s\", ", $res, $bit); 
-	} else {
-	    $res = sprintf("%s\$black_fmt, \"%s\", ", $res, $bit); 
-	}
-    }	
-    $res =~ s|, *$||;
-    return $res;
-}
 
 sub create_format_objects
 {

@@ -75,6 +75,7 @@ sub main
 # 15  'word score'
 # 16  'total score'
 # 17  'Times seen'
+	$FLDS[3] =~ s|&nl;|\n|g;
 	$EntryId = $FLDS[12];
 	$EntryId =~ s|\..*$||;
 	$FLDS[10] =~ s|^ *sensitive:||i;
