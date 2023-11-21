@@ -1,0 +1,1 @@
+../progs/getDataForChecking_XML.pl
