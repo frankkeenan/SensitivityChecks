@@ -1,4 +1,4 @@
-cat run_elf_midlow.sh
+cat $0
 perl  drop_sup_att.pl dps_elf.xml  | perl inherit_lexids.pl | perl add_priorities.pl | perl getDataForChecking_midlow.pl  -f elf.cfg  > ../TMP/dataForChecking.dat
 
 perl sensitivity_check_new.pl -i ./inclusions.xml -x ./exclusions.dat -f SensitiveInfoWithFreqs.xml ../TMP/dataForChecking.dat > ../TMP/sensitiveELF_midlow.dat

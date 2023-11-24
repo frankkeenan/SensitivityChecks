@@ -1,3 +1,4 @@
+cat $0
 perl  drop_sup_att.pl dps_elf.xml  | perl inherit_lexids.pl | perl add_priorities.pl | perl getDataForChecking_midlow.pl  -f elf.cfg  > ../TMP/dataForChecking.dat
 
 perl caps_check_xml.pl ../TMP/dataForChecking.dat > TMP/capsELF.dat 
